@@ -1,3 +1,8 @@
+v1.0.1
+	Added Excel functionality in .xml format.
+	Portability removed due to Excel compatibility
+		-Saurutobi
+
 v1.0.0
 	Created Program
 		-Saurutobi

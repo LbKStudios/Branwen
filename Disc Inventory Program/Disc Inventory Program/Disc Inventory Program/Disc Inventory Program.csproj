@@ -25,8 +25,8 @@
     <ProductName>Disc Inventory Program</ProductName>
     <PublisherName>LbKstudios</PublisherName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>2</ApplicationRevision>
-    <ApplicationVersion>1.0.1.2</ApplicationVersion>
+    <ApplicationRevision>213</ApplicationRevision>
+    <ApplicationVersion>1.0.1.213</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -84,6 +84,12 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
+    <Reference Include="Yogesh.ExcelXml">
+      <HintPath>.\Yogesh.ExcelXml.dll</HintPath>
+    </Reference>
+    <Reference Include="Yogesh.Extensions">
+      <HintPath>.\Yogesh.Extensions.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GUI.cs">
