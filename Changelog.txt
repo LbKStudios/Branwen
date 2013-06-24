@@ -1,6 +1,6 @@
 v1.0.1
 	Added Excel functionality in .xml format.
-	Portability removed due to Excel compatibility
+	Portable with .dlls in same folder
 		-Saurutobi
 
 v1.0.0
