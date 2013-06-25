@@ -66,12 +66,14 @@
 			// 
 			// buttonStartInventory
 			// 
+			this.buttonStartInventory.Enabled = false;
 			this.buttonStartInventory.Location = new System.Drawing.Point(573, 12);
 			this.buttonStartInventory.Name = "buttonStartInventory";
 			this.buttonStartInventory.Size = new System.Drawing.Size(153, 23);
 			this.buttonStartInventory.TabIndex = 3;
 			this.buttonStartInventory.Text = "Start Inventory";
 			this.buttonStartInventory.UseVisualStyleBackColor = true;
+			this.buttonStartInventory.Visible = false;
 			this.buttonStartInventory.Click += new System.EventHandler(this.buttonStartInventory_Click);
 			// 
 			// buttonSelectInventoryDirectory
@@ -86,12 +88,14 @@
 			// 
 			// buttonSelectFileDirectory
 			// 
+			this.buttonSelectFileDirectory.Enabled = false;
 			this.buttonSelectFileDirectory.Location = new System.Drawing.Point(414, 12);
 			this.buttonSelectFileDirectory.Name = "buttonSelectFileDirectory";
 			this.buttonSelectFileDirectory.Size = new System.Drawing.Size(153, 23);
 			this.buttonSelectFileDirectory.TabIndex = 2;
 			this.buttonSelectFileDirectory.Text = "Select Directory to Store File";
 			this.buttonSelectFileDirectory.UseVisualStyleBackColor = true;
+			this.buttonSelectFileDirectory.Visible = false;
 			this.buttonSelectFileDirectory.Click += new System.EventHandler(this.buttonSelectFileDirectory_Click);
 			// 
 			// textBoxFileName
@@ -101,6 +105,7 @@
 			this.textBoxFileName.Size = new System.Drawing.Size(237, 20);
 			this.textBoxFileName.TabIndex = 4;
 			this.textBoxFileName.Text = "Enter File Name Here";
+			this.textBoxFileName.Visible = false;
 			// 
 			// GUI
 			// 

@@ -9,6 +9,8 @@ using System.Text;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
 using System.IO;
+using Yogesh.ExcelXml;
+using Yogesh.Extensions;
 
 namespace Disc_Inventory_Program
 {
@@ -17,10 +19,12 @@ namespace Disc_Inventory_Program
 		DirectoryInfo onDeck;
 		DirectoryInfo [] directories;
 		FileInfo [] files;
-		StreamWriter writer;
+		Stream writer;
 		List<FileInfo> test;
+		ExcelXmlWorkbook workBook;
+		Worksheet sheet;
 		int count = 0;
-
+		
         public GUI()
         {
             InitializeComponent();
@@ -34,6 +38,12 @@ namespace Disc_Inventory_Program
 				folderDialog.Description = "Set Folder to Inventory";
 				folderDialog.ShowDialog();
 				onDeck = new DirectoryInfo(folderDialog.SelectedPath);
+				textBoxFileName.Enabled = true;
+				textBoxFileName.Visible = true;
+				buttonSelectFileDirectory.Enabled = true;
+				buttonSelectFileDirectory.Visible = true;
+				buttonSelectInventoryDirectory.Enabled = false;
+				buttonSelectInventoryDirectory.Visible = false;
 			}
 			catch(Exception ex)
 			{
@@ -52,8 +62,17 @@ namespace Disc_Inventory_Program
 				FolderBrowserDialog folderDialog = new FolderBrowserDialog();
 				folderDialog.Description = "Select Destination Folder for Inventory file";
 				folderDialog.ShowDialog();
-				writer = new StreamWriter(folderDialog.SelectedPath + "\\" + textBoxFileName.Text + ".csv");
+				workBook = new ExcelXmlWorkbook();
+				workBook.Properties.Author = Environment.UserName;
+				sheet = workBook[0];
+				sheet.Name = textBoxFileName.Text;
+				writer = File.OpenWrite(folderDialog.SelectedPath + "\\" + textBoxFileName.Text + ".xml");
 				buttonStartInventory.Enabled = true;
+				buttonStartInventory.Visible = true;
+				buttonSelectFileDirectory.Enabled = false;
+				buttonSelectFileDirectory.Visible = false;
+				textBoxFileName.Enabled = false;
+				textBoxFileName.Visible = false;
 			}
 			catch(ArgumentNullException ex)
 			{
@@ -73,6 +92,8 @@ namespace Disc_Inventory_Program
         {
 			try
 			{
+				buttonSelectFileDirectory.Enabled = false;
+				buttonSelectFileDirectory.Visible = false;
 				count = 0;
 				textboxOutput.Clear();
 				if(onDeck == null || writer == null)
@@ -83,11 +104,14 @@ namespace Disc_Inventory_Program
 				for(int i = 0; i < test.Count; i++)
 				{
 					writeFile(test[i]);
-					count++;
 				}
-				writer.Close();
 				textboxOutput.AppendText("\n");
 				textboxOutput.AppendText("Done. " + count + " Items Processed");
+				workBook.Export(writer);
+				buttonSelectInventoryDirectory.Enabled = true;
+				buttonSelectInventoryDirectory.Visible = true;
+				buttonStartInventory.Enabled = true;
+				buttonStartInventory.Visible = false;
 			}
 			catch(ArgumentNullException ex)
 			{
@@ -121,15 +145,15 @@ namespace Disc_Inventory_Program
 
 		private void writeFile(FileInfo file)
 		{
-			writer.Write(Path.GetFileNameWithoutExtension(file.Name) + "," + Path.GetExtension(file.Name));
-			string [] path = file.FullName.Split('\\');
-			for(int i = 0; i < path.Length - 1; i++)
+			string [] path = file.DirectoryName.Split('\\');
+			sheet[0, count].Value = Path.GetFileNameWithoutExtension(file.Name);
+			sheet[1, count].Value = Path.GetExtension(file.Name);
+			for(int i = 0; i < path.Length; i++)
 			{
-				writer.Write("," + path[i] + "\\");
+				sheet[i + 2, count].Value = path[i] + "\\";
 			}
-			writer.WriteLine("");
 			textboxOutput.AppendText(file.FullName + "\n");
-			writer.Flush();
+			count++;
 		}
     }
 }
