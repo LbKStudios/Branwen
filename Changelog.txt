@@ -1,9 +1,0 @@
-v1.0.1
-	Added Excel functionality in .xml format.
-	Portable with .dlls in same folder
-	Portable with dll merging utility watermark
-		-Saurutobi
-
-v1.0.0
-	Created Program
-		-Saurutobi
