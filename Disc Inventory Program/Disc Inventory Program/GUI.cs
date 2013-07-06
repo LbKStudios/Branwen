@@ -29,6 +29,7 @@ namespace Disc_Inventory_Program
 		
         public GUI()
         {
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
             InitializeComponent();
         }
 
@@ -246,7 +247,6 @@ namespace Disc_Inventory_Program
 				sheet[i + 2, count].Value = path[i] + "\\";
 			}
 			worker.ReportProgress(50, file.FullName + "\n");
-			//textboxOutput.AppendText(file.FullName + "\n");
 			count++;
 		}
     }

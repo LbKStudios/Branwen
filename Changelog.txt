@@ -1,3 +1,7 @@
+v1.3.0
+	Added double-buffering of GUI to stabilize and avoid crashing
+		-Saurutobi
+
 v1.2.0
 	Added backgroundworker so UI doesn't crash when handling massive amounts of items
 		-Saurutobi
