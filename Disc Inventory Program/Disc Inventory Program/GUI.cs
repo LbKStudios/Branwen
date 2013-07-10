@@ -29,7 +29,13 @@ namespace Disc_Inventory_Program
 		
         public GUI()
         {
-            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
+            this.SetStyle(
+                ControlStyles.AllPaintingInWmPaint | 
+                ControlStyles.UserPaint | 
+                ControlStyles.DoubleBuffer | 
+                ControlStyles.CacheText | 
+                ControlStyles.OptimizedDoubleBuffer | 
+                ControlStyles.ResizeRedraw, true);
             InitializeComponent();
         }
 

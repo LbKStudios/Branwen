@@ -1,3 +1,7 @@
+v1.3.1
+	Added optimized double-buffereing
+		-Saurutobi
+
 v1.3.0
 	Added double-buffering of GUI to stabilize and avoid crashing
 		-Saurutobi
