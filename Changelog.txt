@@ -1,3 +1,8 @@
+v2.0.0
+	Complete re-write of the XML section
+	Complete GUI re-design
+		-Saurutobi
+
 v1.3.1
 	Added optimized double-buffereing
 		-Saurutobi

@@ -16,7 +16,6 @@ C:\Users\Saurutobi\My Files\LBKStudios\Projects - Ideas and WIP\Git\DiscInventor
 C:\Users\Saurutobi\My Files\LBKStudios\Projects - Ideas and WIP\Git\DiscInventoryProgram\Disc Inventory Program\Disc Inventory Program\obj\Debug\Disc Inventory Program.pdb
 C:\Users\Saurutobi\My Files\LBKStudios\Projects - Ideas and WIP\Git\DiscInventoryProgram\Disc Inventory Program\Disc Inventory Program\bin\Debug\Disc Inventory Program.exe
 C:\Users\Saurutobi\My Files\LBKStudios\Projects - Ideas and WIP\Git\DiscInventoryProgram\Disc Inventory Program\Disc Inventory Program\bin\Debug\Disc Inventory Program.pdb
-C:\Users\Saurutobi\My Files\LBKStudios\Projects - Ideas and WIP\Git\DiscInventoryProgram\Disc Inventory Program\Disc Inventory Program\obj\Debug\Disc Inventory Program.csprojResolveAssemblyReference.cache
 C:\Users\Saurutobi\My Files\LBKStudios\Projects - Ideas and WIP\Git\DiscInventoryProgram\Disc Inventory Program\Disc Inventory Program\obj\Debug\Disc_Inventory_Program.GUI.resources
 C:\Users\Saurutobi\My Files\LBKStudios\Projects - Ideas and WIP\Git\DiscInventoryProgram\Disc Inventory Program\Disc Inventory Program\obj\Debug\Disc_Inventory_Program.Properties.Resources.resources
 C:\Users\Saurutobi\My Files\LBKStudios\Projects - Ideas and WIP\Git\DiscInventoryProgram\Disc Inventory Program\Disc Inventory Program\obj\Debug\Disc Inventory Program.csproj.GenerateResource.Cache
@@ -28,3 +27,5 @@ C:\git\DiscInventoryProgram\Disc Inventory Program\Disc Inventory Program\bin\De
 C:\git\DiscInventoryProgram\Disc Inventory Program\Disc Inventory Program\obj\Debug\Disc_Inventory_Program.GUI.resources
 C:\git\DiscInventoryProgram\Disc Inventory Program\Disc Inventory Program\obj\Debug\Disc_Inventory_Program.Properties.Resources.resources
 C:\git\DiscInventoryProgram\Disc Inventory Program\Disc Inventory Program\obj\Debug\Disc Inventory Program.csproj.GenerateResource.Cache
+C:\Users\Saurutobi\My Files\LBKStudios\Projects - Ideas and WIP\Git\DiscInventoryProgram\Disc Inventory Program\Disc Inventory Program\obj\Debug\Disc Inventory Program.TrustInfo.xml
+C:\Users\Saurutobi\My Files\LBKStudios\Projects - Ideas and WIP\Git\DiscInventoryProgram\Disc Inventory Program\Disc Inventory Program\obj\Debug\Disc Inventory Program.exe.manifest

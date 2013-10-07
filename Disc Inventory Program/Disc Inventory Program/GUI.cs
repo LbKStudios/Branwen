@@ -9,219 +9,142 @@ using System.Text;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
 using System.IO;
-using Yogesh.ExcelXml;
-using Yogesh.Extensions;
+using System.Xml;
 
 namespace Disc_Inventory_Program
 {
     public partial class GUI : Form
     {
-		DirectoryInfo onDeck;
+        DirectoryInfo [] bigDirectories;
 		DirectoryInfo [] directories;
 		FileInfo [] files;
-		Stream writer;
-		List<FileInfo> test;
-		ExcelXmlWorkbook workBook;
-		Worksheet sheet;
-		int count = 0;
-        int sheetCount = 0;
-		BackgroundWorker worker;
+        Stream outputStream;
+//ExcelXmlWorkbook workBook;
+//Worksheet sheet;
+        int itemCount = 0;
 		
         public GUI()
         {
-            this.SetStyle(
-                ControlStyles.AllPaintingInWmPaint | 
-                ControlStyles.UserPaint | 
-                ControlStyles.DoubleBuffer | 
-                ControlStyles.CacheText | 
-                ControlStyles.OptimizedDoubleBuffer | 
-                ControlStyles.ResizeRedraw, true);
             InitializeComponent();
         }
 
 		#region buttons
 
-		private void buttonSelectFileDirectory_Click(object sender, EventArgs e)
-		{
-			try
-			{
-				FolderBrowserDialog folderDialog = new FolderBrowserDialog();
-				folderDialog.Description = "Select Destination Folder for Inventory file";
-				folderDialog.ShowDialog();
-				workBook = new ExcelXmlWorkbook();
-				workBook.Properties.Author = Environment.UserName;
-				writer = File.OpenWrite(folderDialog.SelectedPath + "\\" + textBoxFileName.Text + ".xml");
-				sheetCount = 0;
+        private void buttonSelectSaveDirectory_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                FolderBrowserDialog folderDialog = new FolderBrowserDialog();
+                folderDialog.Description = "Select Destination Folder for Inventory file";
+                folderDialog.ShowDialog();
+//workBook = new ExcelXmlWorkbook();
+//workBook.Properties.Author = Environment.UserName;
+                outputStream = File.OpenWrite(folderDialog.SelectedPath + "\\mediadriveInventory.xml");
 
-				//make this thing and all associated stuff go away
-				buttonSelectFileDirectory.Enabled = false;
-				buttonSelectFileDirectory.Visible = false;
-				textBoxFileName.Enabled = false;
-				textBoxFileName.Visible = false;
+                //make this thing and all associated stuff go away
+                buttonSelectSaveDirectory.Enabled = false;
 
-				//next phase appear
-				buttonSelectInventoryDirectory.Enabled = true;
-				buttonSelectInventoryDirectory.Visible = true;
-				
-			}
-			catch(ArgumentNullException ex)
-			{
-				System.Windows.Forms.MessageBox.Show(ex.ParamName);
-			}
-			catch(IOException ex)
-			{
-				System.Windows.Forms.MessageBox.Show("Could not make file-" + ex.Message);
-			}
-			catch(Exception ex)
-			{
-				System.Windows.Forms.MessageBox.Show("Asking for directory failed" + ex.Message);
-			}
-		}
+                //next phase appear
+                buttonSelectInventoryDirectory.Enabled = true;
 
-        private void buttonSelectInventoryDirectory_Click(object sender, EventArgs e)
-		{
-			try
-			{
-				FolderBrowserDialog folderDialog = new FolderBrowserDialog();
-				folderDialog.Description = "Set Folder to Inventory";
-				folderDialog.ShowDialog();
-				onDeck = new DirectoryInfo(folderDialog.SelectedPath);
-
-				//make this thing and all associated stuff go away
-				buttonSelectInventoryDirectory.Enabled = false;
-				buttonSelectInventoryDirectory.Visible = false;
-
-				//next phase appear
-				textBoxWorkSheetName.Enabled = true;
-				textBoxWorkSheetName.Visible = true;
-				buttonNameWorksheet.Enabled = true;
-				buttonNameWorksheet.Visible = true;
-			}
-			catch(Exception ex)
-			{
-				System.Windows.Forms.MessageBox.Show("Asking for directory failed" + ex.Message);
-			}
+            }
+            catch (ArgumentNullException ex)
+            {
+                System.Windows.Forms.MessageBox.Show(ex.ParamName);
+            }
+            catch (IOException ex)
+            {
+                System.Windows.Forms.MessageBox.Show("Could not make file-" + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show("Asking for directory failed" + ex.Message);
+            }
         }
 
-        private void buttonNameWorksheet_Click(object sender, EventArgs e)
+        private void buttonSelectInventoryDirectory_Click(object sender, EventArgs e)
         {
-            sheet = workBook[sheetCount];
-            sheet.Name = textBoxWorkSheetName.Text;
-			sheet.Font.Name = "Calibri";
-			sheet.Font.Size = 11;
-			
-			//make this thing and all associated stuff go away
-			textBoxWorkSheetName.Enabled = false;
-			textBoxWorkSheetName.Visible = false;
-			buttonNameWorksheet.Enabled = false;
-			buttonNameWorksheet.Visible = false;
+            try
+            {
+                FolderBrowserDialog folderDialog = new FolderBrowserDialog();
+                folderDialog.Description = "Set Folder to Inventory";
+                folderDialog.ShowDialog();
+                bigDirectories = new DirectoryInfo(folderDialog.SelectedPath).GetDirectories();
 
-			//next phase appear
-            buttonStartInventory.Enabled = true;
-            buttonStartInventory.Visible = true;
+                //make this thing and all associated stuff go away
+                buttonSelectInventoryDirectory.Enabled = false;
+
+                //next phase appear
+                buttonStartInventory.Enabled = true;
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show("Asking for directory failed" + ex.Message);
+            }
         }
 
         private void buttonStartInventory_Click(object sender, EventArgs e)
         {
-			try
-			{
-				//make this thing and all associated stuff go away
-				buttonStartInventory.Enabled = false;
-				buttonStartInventory.Visible = false;
+            try
+            {
+                //make this thing and all associated stuff go away
+                buttonStartInventory.Enabled = false;
+                buttonSelectSaveDirectory.Text = "Working";
+                buttonSelectInventoryDirectory.Text = "Working";
+                buttonStartInventory.Text = "Working";
+                using(StreamWriter writer = new StreamWriter(outputStream))
+                {
+                    bool firstSheet = true;
+                    writer.Write(writeBeginningCrap());
+                    foreach (DirectoryInfo bigDir in bigDirectories)
+                    {
+                        String dirName= 30 >= bigDir.Name.Length ? bigDir.Name : bigDir.Name.Substring(0, 30);
 
-				//next phase appear
-                buttonRestart.Visible = true;
-                buttonNewWorksheet.Visible = true;
-				buttonExit.Visible = true;
-				textboxOutput.Clear();
-				if(onDeck == null || writer == null)
-				{
-					throw new ArgumentNullException("Please select a Directory to Inventory or Destination Folder for Inventory File first");
-				}
-				worker = new BackgroundWorker();
-				worker.DoWork += new DoWorkEventHandler(worker_DoWork);
-				worker.WorkerReportsProgress = true;
-				worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(worker_Done);
-				worker.ProgressChanged += new ProgressChangedEventHandler(worker_Update);
-				worker.RunWorkerAsync();
-			}
-			catch(ArgumentNullException ex)
-			{
-				System.Windows.Forms.MessageBox.Show(ex.ParamName);
-			}
-			catch(Exception ex)
-			{
-				System.Windows.Forms.MessageBox.Show("Failed to Inventory-" + ex.Message);
-			}
+                        writer.Write("\n <Worksheet ss:Name=\"" + dirName + "\">");
+                        
+                        writeInventory(Inventory(bigDir), writer);
+                        
+                        writer.Write("\n  </Table>");
+                        writer.Write("\n  <WorksheetOptions xmlns=\"urn:schemas-microsoft-com:office:excel\">");
+                        writer.Write("\n   <PageSetup>");
+                        writer.Write("\n    <Header x:Margin=\"0.3\"/>");
+                        writer.Write("\n    <Footer x:Margin=\"0.3\"/>");
+                        writer.Write("\n    <PageMargins x:Bottom=\"0.75\" x:Left=\"0.7\" x:Right=\"0.7\" x:Top=\"0.75\"/>");
+                        writer.Write("\n   </PageSetup>");
+                        writer.Write("\n   <Unsynced/>");
+                        writer.Write("\n   <Print>");
+                        writer.Write("\n    <ValidPrinterInfo/>");
+                        writer.Write("\n    <VerticalResolution>0</VerticalResolution>");
+                        writer.Write("\n   </Print>");
+                        if (firstSheet)
+                        {
+                            writer.Write("\n   <Selected/>");
+                            firstSheet = false;
+                        }
+                        writer.Write("\n   <ProtectObjects>False</ProtectObjects>");
+                        writer.Write("\n   <ProtectScenarios>False</ProtectScenarios>");
+                        writer.Write("\n  </WorksheetOptions>");
+                        writer.Write("\n </Worksheet>");
+                    }
+                    writer.Write("\n</Workbook>");
+                }
+//workBook.Export(writer);
+                buttonSelectSaveDirectory.Text = "DONE! itemCount:  " + itemCount;
+                buttonSelectInventoryDirectory.Text = "DONE! itemCount:  " + itemCount;
+                buttonStartInventory.Text = "DONE! itemCount:  " + itemCount;
+                //Environment.Exit(0);
+            }
+            catch (ArgumentNullException ex)
+            {
+                System.Windows.Forms.MessageBox.Show(ex.ParamName);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show("Failed to Inventory-" + ex.Message);
+            }
         }
-
-        private void buttonRestart_Click(object sender, EventArgs e)
-        {
-			workBook.Export(writer);
-            writer.Close();
-
-			//make this thing and all associated stuff go away
-			buttonRestart.Enabled = false;
-			buttonRestart.Visible = false;
-			buttonNewWorksheet.Enabled = false;
-			buttonNewWorksheet.Visible = false;
-			buttonExit.Enabled = false;
-			buttonExit.Visible = false;
-
-			//next phase appear
-            buttonSelectFileDirectory.Enabled = true;
-            buttonSelectFileDirectory.Visible = true;
-			textBoxFileName.Enabled = true;
-			textBoxFileName.Visible = true;
-        }
-
-        private void buttonNewWorksheet_Click(object sender, EventArgs e)
-        {
-			sheetCount++;
-			//make this thing and all associated stuff go away
-            buttonRestart.Enabled = false;
-            buttonRestart.Visible = false;
-            buttonNewWorksheet.Enabled = false;
-            buttonNewWorksheet.Visible = false;
-			buttonExit.Enabled = false;
-			buttonExit.Visible = false;
-
-			//next phase appear
-			buttonSelectInventoryDirectory.Enabled = true;
-			buttonSelectInventoryDirectory.Visible = true;
-        }
-
-		private void buttonExit_Click(object sender, EventArgs e)
-		{
-			workBook.Export(writer);
-			Environment.Exit(0);
-		}
-
+       
 		#endregion
-
-		private void worker_DoWork(object sender, DoWorkEventArgs e)
-		{
-			count = 0;
-			test = Inventory(onDeck);
-			for(int i = 0; i < test.Count; i++)
-			{
-				writeFile(test[i]);
-			}
-			worker.ReportProgress(100, "Done. ");
-		}
-
-		private void worker_Update(object sender, ProgressChangedEventArgs e)
-		{
-			this.textboxOutput.AppendText((string)e.UserState);
-		}
-
-		private void worker_Done(object sender, RunWorkerCompletedEventArgs e)
-		{
-			this.textboxOutput.AppendText(count + " Items Processed");
-			buttonRestart.Enabled = true;
-			buttonNewWorksheet.Enabled = true;
-			buttonExit.Enabled = true;
-		}
 
 		private List<FileInfo> Inventory(DirectoryInfo parent)
         {
@@ -243,17 +166,86 @@ namespace Disc_Inventory_Program
 			return toReturn;
         }
 
-		private void writeFile(FileInfo file)
-		{
-			string [] path = file.DirectoryName.Split('\\');
-			sheet[0, count].Value = Path.GetFileNameWithoutExtension(file.Name);
-			sheet[1, count].Value = Path.GetExtension(file.Name);
-			for(int i = 0; i < path.Length; i++)
-			{
-				sheet[i + 2, count].Value = path[i] + "\\";
-			}
-			worker.ReportProgress(50, file.FullName + "\n");
-			count++;
-		}
+        private void writeInventory(List<FileInfo> files, StreamWriter writer)
+        {
+            writer.Write("\n  <Table ss:ExpandedColumnCount=\"20\" ss:ExpandedRowCount=\"" + (files.Count + 1) + "\" x:FullColumns=\"1\"");
+            writer.Write("\n   x:FullRows=\"1\" ss:DefaultRowHeight=\"15\" ss:FullColumns=\"1\" ss:FullRows=\"1\">");
+            writer.Write(writeSheetHeader());
+            foreach (FileInfo file in files)
+            {
+                writer.Write("\n   <Row ss:AutoFitHeight=\"0\">");
+                string[] path = file.DirectoryName.Split('\\');
+
+                writer.Write("\n    <Cell><Data ss:Type=\"String\">" + Path.GetFileNameWithoutExtension(file.Name) + "</Data></Cell>");
+                writer.Write("\n    <Cell><Data ss:Type=\"String\">" + Path.GetExtension(file.Name) + "</Data></Cell>");
+                for (int i = 0; i < path.Length; i++)
+                {
+                    writer.Write("\n    <Cell><Data ss:Type=\"String\">" + path[i] + "\\" + "</Data></Cell>");
+                }
+                itemCount++;
+                writer.Write("\n   </Row>");
+            }
+        }
+
+        private String writeBeginningCrap()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append("<?xml version=\"1.0\"?>");
+            builder.Append("\n<?mso-application progid=\"Excel.Sheet\"?>");
+            builder.Append("\n<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"");
+            builder.Append("\n xmlns:o=\"urn:schemas-microsoft-com:office:office\"");
+            builder.Append("\n xmlns:x=\"urn:schemas-microsoft-com:office:excel\"");
+            builder.Append("\n xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"");
+            builder.Append("\n xmlns:html=\"http://www.w3.org/TR/REC-html40\">");
+            builder.Append("\n <DocumentProperties xmlns=\"urn:schemas-microsoft-com:office:office\">");
+            builder.Append("\n  <Author>" + Environment.UserName + "</Author>");
+            builder.Append("\n  <Version>12.00</Version>");
+            builder.Append("\n </DocumentProperties>");
+            builder.Append("\n <ExcelWorkbook xmlns=\"urn:schemas-microsoft-com:office:excel\">");
+            builder.Append("\n  <WindowHeight>10005</WindowHeight>");
+            builder.Append("\n  <WindowWidth>10005</WindowWidth>");
+            builder.Append("\n  <WindowTopX>120</WindowTopX>");
+            builder.Append("\n  <WindowTopY>135</WindowTopY>");
+            builder.Append("\n  <ProtectStructure>False</ProtectStructure>");
+            builder.Append("\n  <ProtectWindows>False</ProtectWindows>");
+            builder.Append("\n </ExcelWorkbook>");
+            builder.Append("\n <Styles>");
+            builder.Append("\n  <Style ss:ID=\"Default\" ss:Name=\"Normal\">");
+            builder.Append("\n   <Alignment ss:Vertical=\"Bottom\"/>");
+            builder.Append("\n   <Borders/>");
+            builder.Append("\n   <Font ss:FontName=\"Calibri\" x:Family=\"Swiss\" ss:Size=\"11\" ss:Color=\"#000000\"/>");
+            builder.Append("\n   <Interior/>");
+            builder.Append("\n   <NumberFormat/>");
+            builder.Append("\n   <Protection/>");
+            builder.Append("\n  </Style>");
+            builder.Append("\n </Styles>");
+            return builder.ToString();
+        }
+
+        private String writeSheetHeader()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append("\n   <Row ss:AutoFitHeight=\"0\">");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "File Name" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "File-Type" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Drive" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder1" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder2" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder3" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder4" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder5" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder6" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder7" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder8" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder9" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder10" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder11" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder12" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder13" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder14" + "</Data></Cell>");
+            builder.Append("\n    <Cell><Data ss:Type=\"String\">" + "Folder15" + "</Data></Cell>");
+            builder.Append("\n   </Row>");
+            return builder.ToString();
+        }
     }
 }
