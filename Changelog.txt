@@ -1,4 +1,4 @@
-v2.0.0
+vDos.0.0
 	Complete re-write of the XML section
 	Complete GUI re-design
 		-Saurutobi
