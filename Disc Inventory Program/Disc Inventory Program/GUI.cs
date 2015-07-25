@@ -30,6 +30,11 @@ namespace Disc_Inventory_Program
 
 		#region buttons
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void buttonSelectSaveDirectory_Click(object sender, EventArgs e)
         {
             try
@@ -62,6 +67,11 @@ namespace Disc_Inventory_Program
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void buttonSelectInventoryDirectory_Click(object sender, EventArgs e)
         {
             try
@@ -83,6 +93,11 @@ namespace Disc_Inventory_Program
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void buttonStartInventory_Click(object sender, EventArgs e)
         {
             try
@@ -146,6 +161,11 @@ namespace Disc_Inventory_Program
        
 		#endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <returns></returns>
 		private List<FileInfo> Inventory(DirectoryInfo parent)
         {
 			directories = parent.GetDirectories();
@@ -166,6 +186,11 @@ namespace Disc_Inventory_Program
 			return toReturn;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="files"></param>
+        /// <param name="writer"></param>
         private void writeInventory(List<FileInfo> files, StreamWriter writer)
         {
             writer.Write("\n  <Table ss:ExpandedColumnCount=\"20\" ss:ExpandedRowCount=\"" + (files.Count + 1) + "\" x:FullColumns=\"1\"");
@@ -187,6 +212,10 @@ namespace Disc_Inventory_Program
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private String writeBeginningCrap()
         {
             StringBuilder builder = new StringBuilder();
@@ -222,6 +251,10 @@ namespace Disc_Inventory_Program
             return builder.ToString();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private String writeSheetHeader()
         {
             StringBuilder builder = new StringBuilder();
