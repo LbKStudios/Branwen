@@ -10,10 +10,9 @@ using System.Windows.Forms;
 using Microsoft.VisualBasic;
 using System.IO;
 using System.Xml;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml;
+using OfficeOpenXml;
 
-namespace Disc_Inventory_Program
+namespace Branwen
 {
     public partial class GUI : Form
     {
@@ -26,10 +25,8 @@ namespace Disc_Inventory_Program
             InitializeComponent();
         }
 
-		#region buttons
-
         /// <summary>
-        /// Select the Directory to Inventory
+        /// Button Handler, Selects Directory then does Inventory
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -37,67 +34,56 @@ namespace Disc_Inventory_Program
         {
             try
             {
+                buttonSelectAndRunInventory.Enabled = true;
                 FolderBrowserDialog folderDialog = new FolderBrowserDialog();
                 folderDialog.Description = "Set Folder to Inventory";
-                folderDialog.ShowDialog();
-                DirectoryInfo[] topLevelDirectories = new DirectoryInfo(folderDialog.SelectedPath).GetDirectories();
-                Stream outputStream = new FileStream(folderDialog.SelectedPath + "\\mediadriveInventory.xml", FileMode.OpenOrCreate);
-                if (topLevelDirectories == null || outputStream == null)
+                if (folderDialog.ShowDialog() != DialogResult.OK)
                 {
-                    throw new ArgumentNullException("Directory Invalid");
+                    return;
+                }
+                DirectoryInfo[] topLevelDirectories = new DirectoryInfo(folderDialog.SelectedPath).GetDirectories();
+                string outputFile = Path.Combine(folderDialog.SelectedPath, "MediadriveInventory.xlsx");
+                if (topLevelDirectories == null || outputFile == null)
+                {
+                    MessageBox.Show("This Directory is Invalid. Please try again");
+                    return;
                 }
 
                 //make this thing and all associated stuff go away
                 buttonSelectAndRunInventory.Enabled = false;
                 buttonSelectAndRunInventory.Text = "Working";
 
-                using(SpreadsheetDocument spreadSheetDocument = SpreadsheetDocument.Create(outputStream, SpreadsheetDocumentType.Workbook, false))
-				{
+                File.Delete(outputFile);
+                using (ExcelPackage excelPackage = new ExcelPackage(new FileInfo(outputFile)))
+                {
+                    excelPackage.Workbook.Properties.Author = "Zeeshan Umar";
+                    excelPackage.Workbook.Properties.Title = "EPPlus Sample";
                     foreach (DirectoryInfo topLevelDirectory in topLevelDirectories)
                     {
-                        WriteDirectoryToNewWorksheet(topLevelDirectory, RunInventory(topLevelDirectory), spreadSheetDocument);
+                        ExcelWorksheet worksheet = CreateWorkSheet(excelPackage, topLevelDirectory.Name);
+                        WriteDirectoryToWorksheet(topLevelDirectory, RunInventory(topLevelDirectory), worksheet);
                     }
+                    excelPackage.Save();
                 }
 
-                buttonSelectAndRunInventory.Text = "DONE! Files Inventoried:  " + fileCount;
+                MessageBox.Show("DONE! Files Inventoried:  " + fileCount);
                 buttonSelectAndRunInventory.Enabled = true;
                 buttonSelectAndRunInventory.Text = "Select Inventory Directory";
             }
-            catch (ArgumentNullException ex)
-            {
-                System.Windows.Forms.MessageBox.Show(ex.ParamName);
-            }
             catch (Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show("Failed to Inventory-" + ex.Message);
+                MessageBox.Show("Failed to Inventory:" + Environment.NewLine + ex.Message);
+                buttonSelectAndRunInventory.Enabled = true;
+                buttonSelectAndRunInventory.Text = "Select Inventory Directory";
             }
         }
-       
-		#endregion
 
-        /// <summary>
-        /// Do the Inventory of a Top Level Directory
-        /// </summary>
-        /// <param name="parent"></param>
-        /// <returns></returns>
-		private List<FileInfo> RunInventory(DirectoryInfo parent)
+        private ExcelWorksheet CreateWorkSheet(ExcelPackage excelPackage, string worksheetName)
         {
-			directories = parent.GetDirectories();
-			files = parent.GetFiles();
-			List<FileInfo> toReturn = new List<FileInfo>();
-			List<FileInfo> filesInDirectory = new List<FileInfo>();
-			for(int i = 0; i < files.Length; i++)
-			{
-				filesInDirectory.Add(files[i]);
-			}
-			for(int i = 0; i < directories.Length; i++)
-			{
-				directories = parent.GetDirectories();
-				toReturn.AddRange(RunInventory(directories[i]));
-				directories = parent.GetDirectories();
-			}
-			toReturn.AddRange(filesInDirectory);
-			return toReturn;
+            excelPackage.Workbook.Worksheets.Add(worksheetName);
+            ExcelWorksheet worksheet = excelPackage.Workbook.Worksheets[excelPackage.Workbook.Worksheets.Count];
+            worksheet.Name = worksheetName;
+            return worksheet;
         }
 
         /// <summary>
@@ -105,30 +91,66 @@ namespace Disc_Inventory_Program
         /// </summary>
         /// <param name="files"></param>
         /// <param name="writer"></param>
-        private void WriteDirectoryToNewWorksheet(DirectoryInfo parent, List<FileInfo> files, SpreadsheetDocument spreadSheetDocument)
+        private void WriteDirectoryToWorksheet(DirectoryInfo parent, List<FileInfo> files, ExcelWorksheet worksheet)
         {
             //Write Worksheet Header
-            using (WorksheetWriter workSheetWriter = WorksheetWriter.Create(spreadSheetDocument, "Product Catalog Export"))
+            WriteHeader(worksheet);
+
+            for (int i = 0; i < files.Count; i++)
             {
+                //using i+2 because header is at 1 and it's easier to do count in index values rather than starting i at 2 and then doing i-2 everywhere
+                worksheet.Cell(i + 2, 1).Value = Path.GetFileNameWithoutExtension(files[i].Name);
+                worksheet.Cell(i + 2, 2).Value = Path.GetExtension(files[i].Name);
+                double merp = (files[i].Length / 1024);
+                worksheet.Cell(i + 2, 3).Value = (files[i].Length / 1024).ToString();  //.Length comes back in Bytes, want it in MegaBytes so divide by 1024
 
-            }
-            //TODO: WRITE SHEET HEADER
-
-            //Write Files to Worksheet
-            foreach (FileInfo file in files)
-            {
-                //Columns: File Name, File-Type, Size(In MB, Folder1, Folder2, Folder3, Folder4, Folder5, Folder6, Folder7
-
-
-                string[] path = file.DirectoryName.Split('\\');
-
-                writer.Write("\n    <Cell><Data ss:Type=\"String\">" + Path.GetFileNameWithoutExtension(file.Name) + "</Data></Cell>");
-                writer.Write("\n    <Cell><Data ss:Type=\"String\">" + Path.GetExtension(file.Name) + "</Data></Cell>");
-                for (int i = 0; i < path.Length; i++)
+                //write all the paths to the spreadsheet
+                string[] path = files[i].DirectoryName.Split('\\');
+                for (int k = 0; k < path.Length; k++)   //using 'k' because 'j' is too easily confused with 'i'
                 {
-                    writer.Write("\n    <Cell><Data ss:Type=\"String\">" + path[i] + "\\" + "</Data></Cell>");
+                    worksheet.Cell(i + 2, k + 4).Value = path[k] + @"\";
                 }
                 fileCount++;
+            }
+        }
+
+        /// <summary>
+        /// Recursively finds all Files in the parent directory
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <returns></returns>
+        private List<FileInfo> RunInventory(DirectoryInfo parent)
+        {
+            directories = parent.GetDirectories();
+            files = parent.GetFiles();
+            List<FileInfo> toReturn = new List<FileInfo>();
+            List<FileInfo> filesInDirectory = new List<FileInfo>();
+            for (int i = 0; i < files.Length; i++)
+            {
+                filesInDirectory.Add(files[i]);
+            }
+            for (int i = 0; i < directories.Length; i++)
+            {
+//TODO:DEBUG WITH THIS LINE GONE:
+                //directories = parent.GetDirectories();
+                toReturn.AddRange(RunInventory(directories[i]));
+//TODO:DEBUG WITH THIS LINE GONE:
+                directories = parent.GetDirectories();
+            }
+            toReturn.AddRange(filesInDirectory);
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Write the standard header to the Worksheet
+        /// </summary>
+        /// <param name="worksheet"></param>
+        private void WriteHeader(ExcelWorksheet worksheet)
+        {
+            List<string> headers = new List<string>() { "File Name", "File-Type", "Size(In MB)", "Folder1", "Folder2", "Folder3", "Folder4", "Folder5", "Folder6", "Folder7" };
+            for(int i = 0; i < headers.Count; i++)
+            {
+                worksheet.Cell(1, i + 1).Value = headers[i];
             }
         }
     }

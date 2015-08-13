@@ -1,4 +1,4 @@
-﻿namespace Disc_Inventory_Program
+﻿namespace Branwen
 {
     partial class GUI
     {
@@ -33,7 +33,7 @@
             // 
             // buttonSelectAndRunInventory
             // 
-            this.buttonSelectAndRunInventory.Enabled = false;
+            this.buttonSelectAndRunInventory.Enabled = true;
             this.buttonSelectAndRunInventory.Location = new System.Drawing.Point(12, 12);
             this.buttonSelectAndRunInventory.Name = "buttonSelectAndRunInventory";
             this.buttonSelectAndRunInventory.Size = new System.Drawing.Size(320, 23);

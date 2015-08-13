@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Disc_Inventory_Program.Properties {
+namespace Branwen.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
