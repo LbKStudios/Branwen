@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Disc_Inventory_Program</RootNamespace>
-    <AssemblyName>Disc Inventory Program</AssemblyName>
+    <AssemblyName>Branwen</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
@@ -22,7 +22,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ProductName>Disc Inventory Program</ProductName>
+    <ProductName>Branwen</ProductName>
     <PublisherName>LbKstudios</PublisherName>
     <AutorunEnabled>true</AutorunEnabled>
     <ApplicationRevision>230</ApplicationRevision>
@@ -63,7 +63,7 @@
     <ManifestCertificateThumbprint>B7ED7E642D76AC1557484DA7B4C223B02C80B55F</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>Disc Inventory Program_TemporaryKey.pfx</ManifestKeyFile>
+    <ManifestKeyFile>Branwen_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignManifests>false</SignManifests>
