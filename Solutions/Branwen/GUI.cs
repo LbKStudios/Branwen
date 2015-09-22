@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections;
+﻿using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using Microsoft.VisualBasic;
 using System.IO;
-using System.Xml;
-using OfficeOpenXml;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace Branwen
 {
@@ -53,18 +47,31 @@ namespace Branwen
                 buttonSelectAndRunInventory.Enabled = false;
                 buttonSelectAndRunInventory.Text = "Working";
 
-                File.Delete(outputFile);
-                using (ExcelPackage excelPackage = new ExcelPackage(new FileInfo(outputFile)))
+                if(File.Exists(outputFile))
                 {
-                    excelPackage.Workbook.Properties.Author = "Zeeshan Umar";
-                    excelPackage.Workbook.Properties.Title = "EPPlus Sample";
-                    foreach (DirectoryInfo topLevelDirectory in topLevelDirectories)
-                    {
-                        ExcelWorksheet worksheet = CreateWorkSheet(excelPackage, topLevelDirectory.Name);
-                        WriteDirectoryToWorksheet(topLevelDirectory, RunInventory(topLevelDirectory), worksheet);
-                    }
-                    excelPackage.Save();
+                    File.Delete(outputFile);
                 }
+
+                //Create worksheet
+                SpreadsheetDocument spreadsheetDocument = SpreadsheetDocument.Create(outputFile, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook);
+                WorkbookPart workbookpart = spreadsheetDocument.AddWorkbookPart();
+                workbookpart.Workbook = new Workbook();
+                Sheets sheets = spreadsheetDocument.WorkbookPart.Workbook.AppendChild<Sheets>(new Sheets());
+
+                //Loop through all Directories and make a new sheet and put that shit in there
+                for (int i = 0; i < topLevelDirectories.Length; i++)
+                {
+                    WorksheetPart worksheetPart = workbookpart.AddNewPart<WorksheetPart>();
+                    worksheetPart.Worksheet = new Worksheet(new SheetData());
+                    SheetData sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
+                    Sheet sheet = new Sheet();
+                    sheet.Id = spreadsheetDocument.WorkbookPart.GetIdOfPart(worksheetPart);
+                    sheet.Name = topLevelDirectories[i].Name;
+                    sheet.SheetId = (UInt32)Convert.ToInt32(i);
+                    sheets.Append(sheet);
+                    WriteDirectoryToWorksheet(RunInventory(topLevelDirectories[i]), sheetData);
+                }
+                spreadsheetDocument.Close();
 
                 MessageBox.Show("DONE! Files Inventoried:  " + fileCount);
                 buttonSelectAndRunInventory.Enabled = true;
@@ -75,42 +82,6 @@ namespace Branwen
                 MessageBox.Show("Failed to Inventory:" + Environment.NewLine + ex.Message);
                 buttonSelectAndRunInventory.Enabled = true;
                 buttonSelectAndRunInventory.Text = "Select Inventory Directory";
-            }
-        }
-
-        private ExcelWorksheet CreateWorkSheet(ExcelPackage excelPackage, string worksheetName)
-        {
-            excelPackage.Workbook.Worksheets.Add(worksheetName);
-            ExcelWorksheet worksheet = excelPackage.Workbook.Worksheets[excelPackage.Workbook.Worksheets.Count];
-            worksheet.Name = worksheetName;
-            return worksheet;
-        }
-
-        /// <summary>
-        /// Writes all files in the Directory to the Workbook
-        /// </summary>
-        /// <param name="files"></param>
-        /// <param name="writer"></param>
-        private void WriteDirectoryToWorksheet(DirectoryInfo parent, List<FileInfo> files, ExcelWorksheet worksheet)
-        {
-            //Write Worksheet Header
-            WriteHeader(worksheet);
-
-            for (int i = 0; i < files.Count; i++)
-            {
-                //using i+2 because header is at 1 and it's easier to do count in index values rather than starting i at 2 and then doing i-2 everywhere
-                worksheet.Cell(i + 2, 1).Value = Path.GetFileNameWithoutExtension(files[i].Name);
-                worksheet.Cell(i + 2, 2).Value = Path.GetExtension(files[i].Name);
-                double merp = (files[i].Length / 1024);
-                worksheet.Cell(i + 2, 3).Value = (files[i].Length / 1024).ToString();  //.Length comes back in Bytes, want it in MegaBytes so divide by 1024
-
-                //write all the paths to the spreadsheet
-                string[] path = files[i].DirectoryName.Split('\\');
-                for (int k = 0; k < path.Length; k++)   //using 'k' because 'j' is too easily confused with 'i'
-                {
-                    worksheet.Cell(i + 2, k + 4).Value = path[k] + @"\";
-                }
-                fileCount++;
             }
         }
 
@@ -131,10 +102,10 @@ namespace Branwen
             }
             for (int i = 0; i < directories.Length; i++)
             {
-//TODO:DEBUG WITH THIS LINE GONE:
+                //TODO:DEBUG WITH THIS LINE GONE:
                 //directories = parent.GetDirectories();
                 toReturn.AddRange(RunInventory(directories[i]));
-//TODO:DEBUG WITH THIS LINE GONE:
+                //TODO:DEBUG WITH THIS LINE GONE:
                 directories = parent.GetDirectories();
             }
             toReturn.AddRange(filesInDirectory);
@@ -142,16 +113,68 @@ namespace Branwen
         }
 
         /// <summary>
+        /// Writes all files in the Directory to the Workbook
+        /// </summary>
+        /// <param name="files"></param>
+        /// <param name="writer"></param>
+        private void WriteDirectoryToWorksheet(List<FileInfo> files, SheetData sheetData)
+        {
+            //Write Worksheet Header
+            WriteHeader(sheetData);
+
+            for (int i = 0; i < files.Count; i++)
+            {
+                Row row = new Row();
+                Cell cell = new Cell();
+                
+                //File Name
+                cell.CellValue = new CellValue(Path.GetFileNameWithoutExtension(files[i].Name));
+                cell.DataType = CellValues.String;
+                row.Append(cell);
+
+                //File Extension
+                cell = new Cell();
+                cell.CellValue = new CellValue(Path.GetExtension(files[i].Name));
+                cell.DataType = CellValues.String;
+                row.Append(cell);
+
+                //Filesize
+                cell = new Cell();
+                cell.CellValue = new CellValue((files[i].Length / 1048576).ToString());
+                cell.DataType = CellValues.Number;
+                row.Append(cell);
+
+                //write all the pathNames to the spreadsheet
+                List<string> path = files[i].DirectoryName.Split('\\').ToList(); ;
+                foreach (string pathName in path)
+                {
+                    cell = new Cell();
+                    cell.CellValue = new CellValue(pathName);
+                    cell.DataType = CellValues.String;
+                    row.Append(cell);
+                }
+
+                sheetData.Append(row);
+                fileCount++;
+            }
+        }
+
+        /// <summary>
         /// Write the standard header to the Worksheet
         /// </summary>
         /// <param name="worksheet"></param>
-        private void WriteHeader(ExcelWorksheet worksheet)
+        private void WriteHeader(SheetData sheetData)
         {
+            Row row = new Row();
             List<string> headers = new List<string>() { "File Name", "File-Type", "Size(In MB)", "Folder1", "Folder2", "Folder3", "Folder4", "Folder5", "Folder6", "Folder7" };
-            for(int i = 0; i < headers.Count; i++)
+            foreach(string header in headers)
             {
-                worksheet.Cell(1, i + 1).Value = headers[i];
+                Cell someCell = new Cell();
+                someCell.CellValue = new CellValue(header);
+                someCell.DataType = CellValues.String;
+                row.Append(someCell);
             }
+            sheetData.Append(row);
         }
     }
 }
