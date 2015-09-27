@@ -47,7 +47,7 @@
             this.Controls.Add(this.buttonSelectAndRunInventory);
             this.Name = "GUI";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Inventory Master";
+            this.Text = "Branwen Automatic Inventory";
             this.ResumeLayout(false);
 
         }
