@@ -49,7 +49,6 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Branwen Automatic Inventory";
             this.ResumeLayout(false);
-
         }
 
         #endregion

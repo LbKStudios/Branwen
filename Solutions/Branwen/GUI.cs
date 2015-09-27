@@ -10,7 +10,7 @@ namespace Branwen
 {
     public partial class GUI : Form
     {
-        private int fileCount = 0;
+        private int fileCount;
 		
         public GUI()
         {
@@ -53,7 +53,7 @@ namespace Branwen
                 SpreadsheetDocument spreadsheetDocument = SpreadsheetDocument.Create(outputFile, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook);
                 WorkbookPart workbookpart = spreadsheetDocument.AddWorkbookPart();
                 workbookpart.Workbook = new Workbook();
-                Sheets sheets = spreadsheetDocument.WorkbookPart.Workbook.AppendChild<Sheets>(new Sheets());
+                Sheets sheets = spreadsheetDocument.WorkbookPart.Workbook.AppendChild(new Sheets());
 
                 //Loop through all Directories and make a new sheet and put that shit in there
                 for (int i = 0; i < topLevelDirectories.Length; i++)
@@ -86,7 +86,7 @@ namespace Branwen
         /// </summary>
         /// <param name="parent"></param>
         /// <returns></returns>
-        private List<FileInfo> RunInventory(DirectoryInfo parent)
+        private static IEnumerable<FileInfo> RunInventory(DirectoryInfo parent)
         {
             List<FileInfo> toReturn = new List<FileInfo>();
             foreach (DirectoryInfo directory in parent.GetDirectories())
@@ -101,36 +101,36 @@ namespace Branwen
         /// Writes all files in the Directory to the Workbook
         /// </summary>
         /// <param name="files"></param>
-        /// <param name="writer"></param>
-        private void WriteDirectoryToWorksheet(List<FileInfo> files, SheetData sheetData)
+        /// <param name="sheetData"></param>
+        private void WriteDirectoryToWorksheet(IEnumerable<FileInfo> files, SheetData sheetData)
         {
             //Write Worksheet Header
             WriteHeader(sheetData);
 
-            for (int i = 0; i < files.Count; i++)
+            foreach(FileInfo file in files)
             {
                 Row row = new Row();
                 Cell cell = new Cell();
                 
                 //File Name
-                cell.CellValue = new CellValue(Path.GetFileNameWithoutExtension(files[i].Name));
+                cell.CellValue = new CellValue(Path.GetFileNameWithoutExtension(file.Name));
                 cell.DataType = CellValues.String;
                 row.Append(cell);
 
                 //File Extension
                 cell = new Cell();
-                cell.CellValue = new CellValue(Path.GetExtension(files[i].Name));
+                cell.CellValue = new CellValue(Path.GetExtension(file.Name));
                 cell.DataType = CellValues.String;
                 row.Append(cell);
 
                 //Filesize
                 cell = new Cell();
-                cell.CellValue = new CellValue((files[i].Length / 1048576).ToString());
+                cell.CellValue = new CellValue((file.Length / 1048576).ToString());
                 cell.DataType = CellValues.Number;
                 row.Append(cell);
 
                 //write all the pathNames to the spreadsheet
-                List<string> path = files[i].DirectoryName.Split('\\').ToList(); ;
+                List<string> path = file.DirectoryName.Split('\\').ToList();
                 foreach (string pathName in path)
                 {
                     cell = new Cell();
@@ -140,7 +140,6 @@ namespace Branwen
                 }
 
                 sheetData.Append(row);
-                
                 fileCount++;
             }
         }
@@ -148,11 +147,11 @@ namespace Branwen
         /// <summary>
         /// Write the standard header to the Worksheet
         /// </summary>
-        /// <param name="worksheet"></param>
-        private void WriteHeader(SheetData sheetData)
+        /// <param name="sheetdata"></param>
+        private static void WriteHeader(SheetData sheetData)
         {
             Row row = new Row();
-            List<string> headers = new List<string>() { "File Name", "File-Type", "Size(In MB)", "Folder1", "Folder2", "Folder3", "Folder4", "Folder5", "Folder6", "Folder7" };
+            List<string> headers = new List<string> { "File Name", "File-Type", "Size(In MB)", "Folder1", "Folder2", "Folder3", "Folder4", "Folder5", "Folder6", "Folder7" };
             foreach(string header in headers)
             {
                 Cell someCell = new Cell();
