@@ -70,9 +70,10 @@ namespace Branwen
                     sheet.SheetId = (UInt32)Convert.ToInt32(i);
                     sheets.Append(sheet);
                     WriteDirectoryToWorksheet(RunInventory(topLevelDirectories[i]), sheetData);
+                    workbookpart.Workbook.Save();
+                    worksheetPart.Worksheet.Save();
                 }
                 spreadsheetDocument.Close();
-
                 MessageBox.Show("DONE! Files Inventoried:  " + fileCount);
                 buttonSelectAndRunInventory.Enabled = true;
                 buttonSelectAndRunInventory.Text = "Select Inventory Directory";
