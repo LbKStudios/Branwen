@@ -10,8 +10,6 @@ namespace Branwen
 {
     public partial class GUI : Form
     {
-		private DirectoryInfo [] directories;
-		private FileInfo [] files;
         private int fileCount = 0;
 		
         public GUI()
@@ -28,13 +26,16 @@ namespace Branwen
         {
             try
             {
-                buttonSelectAndRunInventory.Enabled = true;
+                //make this thing and all associated stuff go away
+                buttonSelectAndRunInventory.Enabled = false;
+                buttonSelectAndRunInventory.Text = "Working";
                 FolderBrowserDialog folderDialog = new FolderBrowserDialog();
                 folderDialog.Description = "Set Folder to Inventory";
                 if (folderDialog.ShowDialog() != DialogResult.OK)
                 {
                     return;
                 }
+
                 DirectoryInfo[] topLevelDirectories = new DirectoryInfo(folderDialog.SelectedPath).GetDirectories();
                 string outputFile = Path.Combine(folderDialog.SelectedPath, "MediadriveInventory.xlsx");
                 if (topLevelDirectories == null || outputFile == null)
@@ -42,10 +43,6 @@ namespace Branwen
                     MessageBox.Show("This Directory is Invalid. Please try again");
                     return;
                 }
-
-                //make this thing and all associated stuff go away
-                buttonSelectAndRunInventory.Enabled = false;
-                buttonSelectAndRunInventory.Text = "Working";
 
                 if(File.Exists(outputFile))
                 {
@@ -91,20 +88,12 @@ namespace Branwen
         /// <returns></returns>
         private List<FileInfo> RunInventory(DirectoryInfo parent)
         {
-            directories = parent.GetDirectories();
-            files = parent.GetFiles();
             List<FileInfo> toReturn = new List<FileInfo>();
-            List<FileInfo> filesInDirectory = new List<FileInfo>();
-            for (int i = 0; i < files.Length; i++)
+            foreach (DirectoryInfo directory in parent.GetDirectories())
             {
-                filesInDirectory.Add(files[i]);
+                toReturn.AddRange(RunInventory(directory));
             }
-            for (int i = 0; i < directories.Length; i++)
-            {
-                toReturn.AddRange(RunInventory(directories[i]));
-                directories = parent.GetDirectories();
-            }
-            toReturn.AddRange(filesInDirectory);
+            toReturn.AddRange(parent.GetFiles());
             return toReturn;
         }
 

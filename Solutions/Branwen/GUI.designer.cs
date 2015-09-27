@@ -33,7 +33,6 @@
             // 
             // buttonSelectAndRunInventory
             // 
-            this.buttonSelectAndRunInventory.Enabled = true;
             this.buttonSelectAndRunInventory.Location = new System.Drawing.Point(12, 12);
             this.buttonSelectAndRunInventory.Name = "buttonSelectAndRunInventory";
             this.buttonSelectAndRunInventory.Size = new System.Drawing.Size(320, 23);
@@ -47,6 +46,7 @@
             this.ClientSize = new System.Drawing.Size(351, 44);
             this.Controls.Add(this.buttonSelectAndRunInventory);
             this.Name = "GUI";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Inventory Master";
             this.ResumeLayout(false);
 
