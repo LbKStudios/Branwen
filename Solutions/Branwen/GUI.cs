@@ -67,11 +67,9 @@ namespace Branwen
                     Sheet sheet = new Sheet();
                     sheet.Id = spreadsheetDocument.WorkbookPart.GetIdOfPart(worksheetPart);
                     sheet.Name = topLevelDirectories[i].Name;
-                    sheet.SheetId = (UInt32)Convert.ToInt32(i);
+                    sheet.SheetId = (UInt32)Convert.ToInt32(i + 1);
                     sheets.Append(sheet);
                     WriteDirectoryToWorksheet(RunInventory(topLevelDirectories[i]), sheetData);
-                    workbookpart.Workbook.Save();
-                    worksheetPart.Worksheet.Save();
                 }
                 spreadsheetDocument.Close();
                 MessageBox.Show("DONE! Files Inventoried:  " + fileCount);
@@ -156,6 +154,7 @@ namespace Branwen
                 }
 
                 sheetData.Append(row);
+                
                 fileCount++;
             }
         }
