@@ -101,10 +101,7 @@ namespace Branwen
             }
             for (int i = 0; i < directories.Length; i++)
             {
-                //TODO:DEBUG WITH THIS LINE GONE:
-                //directories = parent.GetDirectories();
                 toReturn.AddRange(RunInventory(directories[i]));
-                //TODO:DEBUG WITH THIS LINE GONE:
                 directories = parent.GetDirectories();
             }
             toReturn.AddRange(filesInDirectory);
