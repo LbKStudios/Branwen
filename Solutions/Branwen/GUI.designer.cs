@@ -29,11 +29,12 @@
         private void InitializeComponent()
         {
             this.buttonSelectAndRunInventory = new System.Windows.Forms.Button();
+            this.UseDBCheckBox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // buttonSelectAndRunInventory
             // 
-            this.buttonSelectAndRunInventory.Location = new System.Drawing.Point(12, 12);
+            this.buttonSelectAndRunInventory.Location = new System.Drawing.Point(12, 65);
             this.buttonSelectAndRunInventory.Name = "buttonSelectAndRunInventory";
             this.buttonSelectAndRunInventory.Size = new System.Drawing.Size(320, 23);
             this.buttonSelectAndRunInventory.TabIndex = 1;
@@ -41,19 +42,33 @@
             this.buttonSelectAndRunInventory.UseVisualStyleBackColor = true;
             this.buttonSelectAndRunInventory.Click += new System.EventHandler(this.buttonSelectAndRunInventory_Click);
             // 
+            // UseDBCheckBox
+            // 
+            this.UseDBCheckBox.AutoSize = true;
+            this.UseDBCheckBox.Location = new System.Drawing.Point(12, 12);
+            this.UseDBCheckBox.Name = "UseDBCheckBox";
+            this.UseDBCheckBox.Size = new System.Drawing.Size(60, 17);
+            this.UseDBCheckBox.TabIndex = 2;
+            this.UseDBCheckBox.Text = "UseDB";
+            this.UseDBCheckBox.UseVisualStyleBackColor = true;
+            // 
             // GUI
             // 
-            this.ClientSize = new System.Drawing.Size(351, 44);
+            this.ClientSize = new System.Drawing.Size(351, 100);
+            this.Controls.Add(this.UseDBCheckBox);
             this.Controls.Add(this.buttonSelectAndRunInventory);
             this.Name = "GUI";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Branwen Automatic Inventory";
             this.ResumeLayout(false);
+            this.PerformLayout();
+
         }
 
         #endregion
 
         private System.Windows.Forms.Button buttonSelectAndRunInventory;
+        private System.Windows.Forms.CheckBox UseDBCheckBox;
     }
 }
 

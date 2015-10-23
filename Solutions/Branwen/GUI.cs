@@ -1,5 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -37,38 +38,57 @@ namespace Branwen
                 }
 
                 DirectoryInfo[] topLevelDirectories = new DirectoryInfo(folderDialog.SelectedPath).GetDirectories();
-                string outputFile = Path.Combine(folderDialog.SelectedPath, "MediadriveInventory.xlsx");
-                if (topLevelDirectories == null || outputFile == null)
+                if (topLevelDirectories == null)
                 {
                     MessageBox.Show("This Directory is Invalid. Please try again");
                     return;
                 }
 
-                if(File.Exists(outputFile))
+
+                if (UseDBCheckBox.Checked == true)
                 {
-                    File.Delete(outputFile);
+                    for (int i = 0; i < topLevelDirectories.Length; i++)
+                    {
+                        MySqlConnection conn;
+                        WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i]));
+                    }
+                }
+                else
+                {
+                    string outputFile = Path.Combine(folderDialog.SelectedPath, "MediadriveInventory.xlsx");
+                    if (outputFile == null)
+                    {
+                        MessageBox.Show("This Directory is Invalid. Please try again");
+                        return;
+                    }
+                    if (File.Exists(outputFile))
+                    {
+                        File.Delete(outputFile);
+                    }
+
+                    //Create worksheet
+                    SpreadsheetDocument spreadsheetDocument = SpreadsheetDocument.Create(outputFile, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook);
+                    WorkbookPart workbookpart = spreadsheetDocument.AddWorkbookPart();
+                    workbookpart.Workbook = new Workbook();
+                    Sheets sheets = spreadsheetDocument.WorkbookPart.Workbook.AppendChild(new Sheets());
+
+                    //Loop through all Directories and make a new sheet and put that shit in there
+                    for (int i = 0; i < topLevelDirectories.Length; i++)
+                    {
+                        WorksheetPart worksheetPart = workbookpart.AddNewPart<WorksheetPart>();
+                        worksheetPart.Worksheet = new Worksheet(new SheetData());
+                        SheetData sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
+                        Sheet sheet = new Sheet();
+                        sheet.Id = spreadsheetDocument.WorkbookPart.GetIdOfPart(worksheetPart);
+                        sheet.Name = topLevelDirectories[i].Name;
+                        sheet.SheetId = (UInt32)Convert.ToInt32(i + 1);
+                        sheets.Append(sheet);
+                        WriteDirectoryToWorksheet(RunInventory(topLevelDirectories[i]), sheetData);
+                    }
+                    spreadsheetDocument.Close();
                 }
 
-                //Create worksheet
-                SpreadsheetDocument spreadsheetDocument = SpreadsheetDocument.Create(outputFile, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook);
-                WorkbookPart workbookpart = spreadsheetDocument.AddWorkbookPart();
-                workbookpart.Workbook = new Workbook();
-                Sheets sheets = spreadsheetDocument.WorkbookPart.Workbook.AppendChild(new Sheets());
-
-                //Loop through all Directories and make a new sheet and put that shit in there
-                for (int i = 0; i < topLevelDirectories.Length; i++)
-                {
-                    WorksheetPart worksheetPart = workbookpart.AddNewPart<WorksheetPart>();
-                    worksheetPart.Worksheet = new Worksheet(new SheetData());
-                    SheetData sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
-                    Sheet sheet = new Sheet();
-                    sheet.Id = spreadsheetDocument.WorkbookPart.GetIdOfPart(worksheetPart);
-                    sheet.Name = topLevelDirectories[i].Name;
-                    sheet.SheetId = (UInt32)Convert.ToInt32(i + 1);
-                    sheets.Append(sheet);
-                    WriteDirectoryToWorksheet(RunInventory(topLevelDirectories[i]), sheetData);
-                }
-                spreadsheetDocument.Close();
+                //Cleanup
                 MessageBox.Show("DONE! Files Inventoried:  " + fileCount);
                 buttonSelectAndRunInventory.Enabled = true;
                 buttonSelectAndRunInventory.Text = "Select Inventory Directory";
@@ -97,6 +117,21 @@ namespace Branwen
             return toReturn;
         }
 
+        #region Database Methods
+
+        /// <summary>
+        /// Writes all files in the Directory to the Databbase
+        /// </summary>
+        /// <param name="files"></param>
+        private void WriteDirectoryToDatabase(IEnumerable<FileInfo> files)
+        {
+
+        }
+
+        #endregion
+
+        #region Worksheet Methods
+
         /// <summary>
         /// Writes all files in the Directory to the Workbook
         /// </summary>
@@ -105,7 +140,7 @@ namespace Branwen
         private void WriteDirectoryToWorksheet(IEnumerable<FileInfo> files, SheetData sheetData)
         {
             //Write Worksheet Header
-            WriteHeader(sheetData);
+            WriteWorksheetHeader(sheetData);
 
             foreach(FileInfo file in files)
             {
@@ -148,7 +183,7 @@ namespace Branwen
         /// Write the standard header to the Worksheet
         /// </summary>
         /// <param name="sheetdata"></param>
-        private static void WriteHeader(SheetData sheetData)
+        private static void WriteWorksheetHeader(SheetData sheetData)
         {
             Row row = new Row();
             List<string> headers = new List<string> { "File Name", "File-Type", "Size(In MB)", "Folder1", "Folder2", "Folder3", "Folder4", "Folder5", "Folder6", "Folder7" };
@@ -161,5 +196,7 @@ namespace Branwen
             }
             sheetData.Append(row);
         }
+
+        #endregion
     }
 }
