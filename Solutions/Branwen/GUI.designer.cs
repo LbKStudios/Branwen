@@ -30,13 +30,14 @@
         {
             this.buttonSelectAndRunInventory = new System.Windows.Forms.Button();
             this.UseDBCheckBox = new System.Windows.Forms.CheckBox();
+            this.buttonWipeDb = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // buttonSelectAndRunInventory
             // 
-            this.buttonSelectAndRunInventory.Location = new System.Drawing.Point(12, 65);
+            this.buttonSelectAndRunInventory.Location = new System.Drawing.Point(152, 8);
             this.buttonSelectAndRunInventory.Name = "buttonSelectAndRunInventory";
-            this.buttonSelectAndRunInventory.Size = new System.Drawing.Size(320, 23);
+            this.buttonSelectAndRunInventory.Size = new System.Drawing.Size(146, 23);
             this.buttonSelectAndRunInventory.TabIndex = 1;
             this.buttonSelectAndRunInventory.Text = "Select Inventory Directory";
             this.buttonSelectAndRunInventory.UseVisualStyleBackColor = true;
@@ -52,9 +53,20 @@
             this.UseDBCheckBox.Text = "UseDB";
             this.UseDBCheckBox.UseVisualStyleBackColor = true;
             // 
+            // buttonWipeDb
+            // 
+            this.buttonWipeDb.Location = new System.Drawing.Point(78, 8);
+            this.buttonWipeDb.Name = "buttonWipeDb";
+            this.buttonWipeDb.Size = new System.Drawing.Size(68, 23);
+            this.buttonWipeDb.TabIndex = 3;
+            this.buttonWipeDb.Text = "Wipe DB";
+            this.buttonWipeDb.UseVisualStyleBackColor = true;
+            this.buttonWipeDb.Click += new System.EventHandler(this.buttonWipeDb_Click);
+            // 
             // GUI
             // 
-            this.ClientSize = new System.Drawing.Size(351, 100);
+            this.ClientSize = new System.Drawing.Size(311, 48);
+            this.Controls.Add(this.buttonWipeDb);
             this.Controls.Add(this.UseDBCheckBox);
             this.Controls.Add(this.buttonSelectAndRunInventory);
             this.Name = "GUI";
@@ -69,6 +81,7 @@
 
         private System.Windows.Forms.Button buttonSelectAndRunInventory;
         private System.Windows.Forms.CheckBox UseDBCheckBox;
+        private System.Windows.Forms.Button buttonWipeDb;
     }
 }
 

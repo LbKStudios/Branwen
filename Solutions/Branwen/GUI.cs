@@ -12,6 +12,7 @@ namespace Branwen
     public partial class GUI : Form
     {
         private int fileCount;
+        
 		
         public GUI()
         {
@@ -30,6 +31,7 @@ namespace Branwen
                 //make this thing and all associated stuff go away
                 buttonSelectAndRunInventory.Enabled = false;
                 buttonSelectAndRunInventory.Text = "Working";
+                buttonWipeDb.Enabled = false;
                 FolderBrowserDialog folderDialog = new FolderBrowserDialog();
                 folderDialog.Description = "Set Folder to Inventory";
                 if (folderDialog.ShowDialog() != DialogResult.OK)
@@ -47,10 +49,22 @@ namespace Branwen
 
                 if (UseDBCheckBox.Checked == true)
                 {
+                    MySqlConnection mySqlConnection;
+                    try
+                    {
+                        mySqlConnection = new MySqlConnection("server=box654.bluehost.com;user=lbkstud1_smedia;password=#sucK_my_d1ck;database=lbkstud1_SaurutobiMedia;");
+                        mySqlConnection.Open();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.Write(ex);
+                        return;
+                    }
+
+
                     for (int i = 0; i < topLevelDirectories.Length; i++)
                     {
-                        MySqlConnection conn;
-                        WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i]));
+                        WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i]), mySqlConnection);
                     }
                 }
                 else
@@ -92,12 +106,14 @@ namespace Branwen
                 MessageBox.Show("DONE! Files Inventoried:  " + fileCount);
                 buttonSelectAndRunInventory.Enabled = true;
                 buttonSelectAndRunInventory.Text = "Select Inventory Directory";
+                buttonWipeDb.Enabled = true;
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Failed to Inventory:" + Environment.NewLine + ex.Message);
                 buttonSelectAndRunInventory.Enabled = true;
                 buttonSelectAndRunInventory.Text = "Select Inventory Directory";
+                buttonWipeDb.Enabled = true;
             }
         }
 
@@ -123,9 +139,72 @@ namespace Branwen
         /// Writes all files in the Directory to the Databbase
         /// </summary>
         /// <param name="files"></param>
-        private void WriteDirectoryToDatabase(IEnumerable<FileInfo> files)
+        private void WriteDirectoryToDatabase(IEnumerable<FileInfo> files, MySqlConnection mySqlConnection)
         {
+            //delete all with same mediadrive name
+            //giant insert statement
+            //
+            string insertStatement = "INSERT INTO SaurutobiMedia (FileName, Extension, Size, MediaDrive, Type, Folder1, Folder2, Folder3, Folder4, Folder5, Folder6) VALUES";
 
+            bool firstVal = true;
+            foreach (FileInfo file in files)
+            {
+                if(!firstVal)
+                {
+                    insertStatement += ", ";
+                }
+                else
+                {
+                    firstVal = false;
+                }
+                
+                //File Name
+                insertStatement += "('" + Path.GetFileNameWithoutExtension(file.Name) + "', ";
+
+                //File Extension
+                insertStatement += "'" + Path.GetExtension(file.Name) + "', ";
+
+                //File Size
+                insertStatement += "" + (file.Length / 1048576) + ", ";
+
+                List<string> path = file.DirectoryName.Split('\\').ToList();
+
+
+
+
+                //Inventory out of range bullshit
+
+
+
+                //MediaDrive
+                insertStatement += "'" + path[0] ?? "" + "', ";
+
+                //Type
+                insertStatement += "'" + path[1] ?? "" + "', ";
+
+                //Folder1
+                insertStatement += "'" + path[2] ?? "" + "', ";
+
+                //Folder2
+                insertStatement += "'" + path[3] ?? "" + "', ";
+
+                //Folder3
+                insertStatement += "'" + path[4] ?? "" + "', ";
+
+                //Folder4
+                insertStatement += "'" + path[5] ?? "" + "', ";
+
+                //Folder5
+                insertStatement += "'" + path[6] ?? "" + "', ";
+
+                //Folder6
+                insertStatement += "'" + path[7] ?? "" + "', ";
+
+                insertStatement += ")";
+
+                fileCount++;
+            }
+            insertStatement += ";";
         }
 
         #endregion
@@ -158,7 +237,7 @@ namespace Branwen
                 cell.DataType = CellValues.String;
                 row.Append(cell);
 
-                //Filesize
+                //File Size
                 cell = new Cell();
                 cell.CellValue = new CellValue((file.Length / 1048576).ToString());
                 cell.DataType = CellValues.Number;
@@ -198,5 +277,30 @@ namespace Branwen
         }
 
         #endregion
+
+        /// <summary>
+        /// Truncates the Database to clear old/renamed items
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void buttonWipeDb_Click(object sender, EventArgs e)
+        {
+            buttonWipeDb.Enabled = false;
+            buttonSelectAndRunInventory.Enabled = false;
+            try
+            {
+                //open db connection
+                //submit nonquery
+                //TRUNCATE TABLE bladibla
+                buttonWipeDb.Enabled = true;
+                buttonSelectAndRunInventory.Enabled = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to Wipe:" + Environment.NewLine + ex.Message);
+                buttonWipeDb.Enabled = true;
+                buttonSelectAndRunInventory.Enabled = true;
+            }
+        }
     }
 }
