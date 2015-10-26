@@ -31,11 +31,12 @@
             this.buttonSelectAndRunInventory = new System.Windows.Forms.Button();
             this.UseDBCheckBox = new System.Windows.Forms.CheckBox();
             this.buttonWipeDb = new System.Windows.Forms.Button();
+            this.textBoxMediaDrive = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // buttonSelectAndRunInventory
             // 
-            this.buttonSelectAndRunInventory.Location = new System.Drawing.Point(152, 8);
+            this.buttonSelectAndRunInventory.Location = new System.Drawing.Point(68, 37);
             this.buttonSelectAndRunInventory.Name = "buttonSelectAndRunInventory";
             this.buttonSelectAndRunInventory.Size = new System.Drawing.Size(146, 23);
             this.buttonSelectAndRunInventory.TabIndex = 1;
@@ -63,9 +64,18 @@
             this.buttonWipeDb.UseVisualStyleBackColor = true;
             this.buttonWipeDb.Click += new System.EventHandler(this.buttonWipeDb_Click);
             // 
+            // textBoxMediaDrive
+            // 
+            this.textBoxMediaDrive.Location = new System.Drawing.Point(152, 10);
+            this.textBoxMediaDrive.Name = "textBoxMediaDrive";
+            this.textBoxMediaDrive.Size = new System.Drawing.Size(142, 20);
+            this.textBoxMediaDrive.TabIndex = 4;
+            this.textBoxMediaDrive.Text = "MediaDrive Name";
+            // 
             // GUI
             // 
-            this.ClientSize = new System.Drawing.Size(311, 48);
+            this.ClientSize = new System.Drawing.Size(304, 67);
+            this.Controls.Add(this.textBoxMediaDrive);
             this.Controls.Add(this.buttonWipeDb);
             this.Controls.Add(this.UseDBCheckBox);
             this.Controls.Add(this.buttonSelectAndRunInventory);
@@ -82,6 +92,7 @@
         private System.Windows.Forms.Button buttonSelectAndRunInventory;
         private System.Windows.Forms.CheckBox UseDBCheckBox;
         private System.Windows.Forms.Button buttonWipeDb;
+        private System.Windows.Forms.TextBox textBoxMediaDrive;
     }
 }
 

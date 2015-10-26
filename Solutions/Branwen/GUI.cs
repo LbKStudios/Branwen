@@ -36,6 +36,9 @@ namespace Branwen
                 folderDialog.Description = "Set Folder to Inventory";
                 if (folderDialog.ShowDialog() != DialogResult.OK)
                 {
+                    buttonSelectAndRunInventory.Enabled = true;
+                    buttonSelectAndRunInventory.Text = "Select Inventory Directory";
+                    buttonWipeDb.Enabled = true;
                     return;
                 }
 
@@ -61,10 +64,9 @@ namespace Branwen
                         return;
                     }
 
-
                     for (int i = 0; i < topLevelDirectories.Length; i++)
                     {
-                        WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i]), mySqlConnection);
+                        WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i]), mySqlConnection, textBoxMediaDrive.Text);
                     }
                 }
                 else
@@ -139,25 +141,24 @@ namespace Branwen
         /// Writes all files in the Directory to the Databbase
         /// </summary>
         /// <param name="files"></param>
-        private void WriteDirectoryToDatabase(IEnumerable<FileInfo> files, MySqlConnection mySqlConnection)
+        private void WriteDirectoryToDatabase(IEnumerable<FileInfo> files, MySqlConnection mySqlConnection, string mediaDrive)
         {
-            //delete all with same mediadrive name
-            //giant insert statement
-            //
-            string insertStatement = "INSERT INTO SaurutobiMedia (FileName, Extension, Size, MediaDrive, Type, Folder1, Folder2, Folder3, Folder4, Folder5, Folder6) VALUES";
+            //DELETE * FROM SaurutobiMedia WHERE MediaDrive = "somethin here"
+
+            string insertStatement = "INSERT INTO SaurutobiMedia (FileName, Extension, Size, MediaDrive, Type, Folder1, Folder2, Folder3, Folder4, Folder5, Folder6) VALUES ";
 
             bool firstVal = true;
             foreach (FileInfo file in files)
             {
-                if(!firstVal)
+                if (!firstVal)
                 {
-                    insertStatement += ", ";
+                    insertStatement += ",";
                 }
                 else
                 {
                     firstVal = false;
                 }
-                
+
                 //File Name
                 insertStatement += "('" + Path.GetFileNameWithoutExtension(file.Name) + "', ";
 
@@ -169,42 +170,26 @@ namespace Branwen
 
                 List<string> path = file.DirectoryName.Split('\\').ToList();
 
+                insertStatement += "'" + mediaDrive + "', ";
 
-
-
-                //Inventory out of range bullshit
-
-
-
-                //MediaDrive
-                insertStatement += "'" + path[0] ?? "" + "', ";
-
-                //Type
-                insertStatement += "'" + path[1] ?? "" + "', ";
-
-                //Folder1
-                insertStatement += "'" + path[2] ?? "" + "', ";
-
-                //Folder2
-                insertStatement += "'" + path[3] ?? "" + "', ";
-
-                //Folder3
-                insertStatement += "'" + path[4] ?? "" + "', ";
-
-                //Folder4
-                insertStatement += "'" + path[5] ?? "" + "', ";
-
-                //Folder5
-                insertStatement += "'" + path[6] ?? "" + "', ";
-
-                //Folder6
-                insertStatement += "'" + path[7] ?? "" + "', ";
+                for (int i = 0; i < 7; i++)
+                {
+                    try
+                    {
+                        insertStatement += "'" + path[i + 2] + "', ";
+                    }
+                    catch
+                    {
+                        insertStatement += "'', ";
+                    }
+                }
 
                 insertStatement += ")";
-
                 fileCount++;
             }
             insertStatement += ";";
+
+            //mysqlconnection.submitwhatever
         }
 
         #endregion
