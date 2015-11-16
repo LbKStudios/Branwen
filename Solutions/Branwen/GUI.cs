@@ -26,12 +26,15 @@ namespace Branwen
         /// <param name="e"></param>
         private void buttonSelectAndRunInventory_Click(object sender, EventArgs e)
         {
+            fileCount = 0;
             try
             {
                 //make this thing and all associated stuff go away
                 buttonSelectAndRunInventory.Enabled = false;
                 buttonSelectAndRunInventory.Text = "Working";
                 buttonWipeDb.Enabled = false;
+                textBoxMediaDriveNumber.Enabled = false;
+                UseDBCheckBox.Enabled = false;
                 FolderBrowserDialog folderDialog = new FolderBrowserDialog();
                 folderDialog.Description = "Set Folder to Inventory";
                 if (folderDialog.ShowDialog() != DialogResult.OK)
@@ -39,6 +42,8 @@ namespace Branwen
                     buttonSelectAndRunInventory.Enabled = true;
                     buttonSelectAndRunInventory.Text = "Select Inventory Directory";
                     buttonWipeDb.Enabled = true;
+                    textBoxMediaDriveNumber.Enabled = true;
+                    UseDBCheckBox.Enabled = true;
                     return;
                 }
 
@@ -49,28 +54,37 @@ namespace Branwen
                     return;
                 }
 
-
                 if (UseDBCheckBox.Checked == true)
                 {
+                    #region DB
+
                     MySqlConnection mySqlConnection;
                     try
                     {
                         mySqlConnection = new MySqlConnection("server=box654.bluehost.com;user=lbkstud1_smedia;password=#sucK_my_d1ck;database=lbkstud1_SaurutobiMedia;");
                         mySqlConnection.Open();
+                        //Do the Delete
+                        string deleteStatement = "DELETE FROM SaurutobiMediaPaths WHERE MediaDrive = " + textBoxMediaDriveNumber.Text + "; DELETE FROM SaurutobiMediaFiles WHERE MediaDrive = " + textBoxMediaDriveNumber.Text + ";";
+                        MySqlCommand deleteCommand = new MySqlCommand(deleteStatement, mySqlConnection);
+                        deleteCommand.ExecuteNonQuery();
                     }
                     catch (Exception ex)
                     {
                         Console.Write(ex);
                         return;
                     }
-
+                    
                     for (int i = 0; i < topLevelDirectories.Length; i++)
                     {
-                        WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i]), mySqlConnection, textBoxMediaDrive.Text);
+                        WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i]), mySqlConnection, textBoxMediaDriveNumber.Text);
                     }
+
+                    #endregion
                 }
                 else
                 {
+                    #region SpreadSheet
+
                     string outputFile = Path.Combine(folderDialog.SelectedPath, "MediadriveInventory.xlsx");
                     if (outputFile == null)
                     {
@@ -102,21 +116,21 @@ namespace Branwen
                         WriteDirectoryToWorksheet(RunInventory(topLevelDirectories[i]), sheetData);
                     }
                     spreadsheetDocument.Close();
+
+                    #endregion
                 }
 
-                //Cleanup
                 MessageBox.Show("DONE! Files Inventoried:  " + fileCount);
-                buttonSelectAndRunInventory.Enabled = true;
-                buttonSelectAndRunInventory.Text = "Select Inventory Directory";
-                buttonWipeDb.Enabled = true;
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Failed to Inventory:" + Environment.NewLine + ex.Message);
-                buttonSelectAndRunInventory.Enabled = true;
-                buttonSelectAndRunInventory.Text = "Select Inventory Directory";
-                buttonWipeDb.Enabled = true;
             }
+            buttonSelectAndRunInventory.Enabled = true;
+            buttonSelectAndRunInventory.Text = "Select Inventory Directory";
+            buttonWipeDb.Enabled = true;
+            textBoxMediaDriveNumber.Enabled = true;
+            UseDBCheckBox.Enabled = true;
         }
 
         /// <summary>
@@ -143,53 +157,71 @@ namespace Branwen
         /// <param name="files"></param>
         private void WriteDirectoryToDatabase(IEnumerable<FileInfo> files, MySqlConnection mySqlConnection, string mediaDrive)
         {
-            //DELETE * FROM SaurutobiMedia WHERE MediaDrive = "somethin here"
+            string insertFilesStatement = "INSERT INTO SaurutobiMediaFiles (FileName, Extension, Size, MediaType, MediaDrive) VALUES ";
+            string insertPathsStatement = "INSERT INTO SaurutobiMediaPaths (FileName, PartOfPath, Path, MediaDrive) VALUES ";
 
-            string insertStatement = "INSERT INTO SaurutobiMedia (FileName, Extension, Size, MediaDrive, Type, Folder1, Folder2, Folder3, Folder4, Folder5, Folder6) VALUES ";
-
-            bool firstVal = true;
+            bool firstFileVal = true;
             foreach (FileInfo file in files)
             {
-                if (!firstVal)
+                if (!firstFileVal)
                 {
-                    insertStatement += ",";
+                    insertFilesStatement += ", ";
+                    insertPathsStatement += ", ";
                 }
                 else
                 {
-                    firstVal = false;
+                    firstFileVal = false;
                 }
 
                 //File Name
-                insertStatement += "('" + Path.GetFileNameWithoutExtension(file.Name) + "', ";
+                insertFilesStatement += "('" + (Path.GetFileNameWithoutExtension(file.Name)).Replace("'", "''") + "', ";
 
                 //File Extension
-                insertStatement += "'" + Path.GetExtension(file.Name) + "', ";
+                insertFilesStatement += "'" + Path.GetExtension(file.Name) + "', ";
 
                 //File Size
-                insertStatement += "" + (file.Length / 1048576) + ", ";
+                insertFilesStatement += (file.Length / 1048576) + ", ";
 
                 List<string> path = file.DirectoryName.Split('\\').ToList();
+                //Media Type
+                insertFilesStatement += "'" + (path[2]).Replace("'", "''") + "', ";
 
-                insertStatement += "'" + mediaDrive + "', ";
+                //MediaDrive
+                insertFilesStatement += mediaDrive + ")";
 
-                for (int i = 0; i < 7; i++)
+                bool firstPathVal = true;
+                for (int i = 0; i < path.Count; i++)
                 {
-                    try
+                    if (!firstPathVal)
                     {
-                        insertStatement += "'" + path[i + 2] + "', ";
+                        insertPathsStatement += ", ";
                     }
-                    catch
+                    else
                     {
-                        insertStatement += "'', ";
+                        firstPathVal = false;
                     }
+                    //File Name
+                    insertPathsStatement += "('" + (Path.GetFileNameWithoutExtension(file.Name)).Replace("'", "''") + "', ";
+
+                    //PartOfPath
+                    insertPathsStatement += i + ", ";
+
+                    //Path
+                    insertPathsStatement += "'" + (path[i]).Replace("'", "''") + "', ";
+
+                    //MediaDrive
+                    insertPathsStatement += mediaDrive + ")";
                 }
 
-                insertStatement += ")";
                 fileCount++;
             }
-            insertStatement += ";";
+            insertFilesStatement += ";";
+            insertPathsStatement += ";";
 
-            //mysqlconnection.submitwhatever
+            MySqlCommand insertCommand = new MySqlCommand(insertFilesStatement, mySqlConnection);
+            insertCommand.ExecuteNonQuery();
+            insertCommand = new MySqlCommand(insertPathsStatement, mySqlConnection);
+            insertCommand.ExecuteNonQuery();
         }
 
         #endregion
@@ -264,7 +296,7 @@ namespace Branwen
         #endregion
 
         /// <summary>
-        /// Truncates the Database to clear old/renamed items
+        /// Truncates the Database to clear all items
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -272,20 +304,29 @@ namespace Branwen
         {
             buttonWipeDb.Enabled = false;
             buttonSelectAndRunInventory.Enabled = false;
+            buttonSelectAndRunInventory.Text = "Working";
+            textBoxMediaDriveNumber.Enabled = false;
+            UseDBCheckBox.Enabled = false;
+
             try
             {
-                //open db connection
-                //submit nonquery
-                //TRUNCATE TABLE bladibla
-                buttonWipeDb.Enabled = true;
-                buttonSelectAndRunInventory.Enabled = true;
+                MySqlConnection mySqlConnection;
+                mySqlConnection = new MySqlConnection("server=box654.bluehost.com;user=lbkstud1_smedia;password=#sucK_my_d1ck;database=lbkstud1_SaurutobiMedia;");
+                mySqlConnection.Open();
+
+                string deleteStatement = "TRUNCATE TABLE SaurutobiMediaPaths; TRUNCATE TABLE SaurutobiMediaFiles;";
+                MySqlCommand deleteCommand = new MySqlCommand(deleteStatement, mySqlConnection);
+                deleteCommand.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Failed to Wipe:" + Environment.NewLine + ex.Message);
-                buttonWipeDb.Enabled = true;
-                buttonSelectAndRunInventory.Enabled = true;
             }
+            buttonWipeDb.Enabled = true;
+            buttonSelectAndRunInventory.Enabled = true;
+            buttonSelectAndRunInventory.Text = "Select Inventory Directory";
+            textBoxMediaDriveNumber.Enabled = true;
+            UseDBCheckBox.Enabled = true;
         }
     }
 }

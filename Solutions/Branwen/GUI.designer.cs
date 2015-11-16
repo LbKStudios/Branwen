@@ -31,7 +31,7 @@
             this.buttonSelectAndRunInventory = new System.Windows.Forms.Button();
             this.UseDBCheckBox = new System.Windows.Forms.CheckBox();
             this.buttonWipeDb = new System.Windows.Forms.Button();
-            this.textBoxMediaDrive = new System.Windows.Forms.TextBox();
+            this.textBoxMediaDriveNumber = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // buttonSelectAndRunInventory
@@ -56,7 +56,7 @@
             // 
             // buttonWipeDb
             // 
-            this.buttonWipeDb.Location = new System.Drawing.Point(78, 8);
+            this.buttonWipeDb.Location = new System.Drawing.Point(224, 6);
             this.buttonWipeDb.Name = "buttonWipeDb";
             this.buttonWipeDb.Size = new System.Drawing.Size(68, 23);
             this.buttonWipeDb.TabIndex = 3;
@@ -64,18 +64,18 @@
             this.buttonWipeDb.UseVisualStyleBackColor = true;
             this.buttonWipeDb.Click += new System.EventHandler(this.buttonWipeDb_Click);
             // 
-            // textBoxMediaDrive
+            // textBoxMediaDriveNumber
             // 
-            this.textBoxMediaDrive.Location = new System.Drawing.Point(152, 10);
-            this.textBoxMediaDrive.Name = "textBoxMediaDrive";
-            this.textBoxMediaDrive.Size = new System.Drawing.Size(142, 20);
-            this.textBoxMediaDrive.TabIndex = 4;
-            this.textBoxMediaDrive.Text = "MediaDrive Name";
+            this.textBoxMediaDriveNumber.Location = new System.Drawing.Point(76, 8);
+            this.textBoxMediaDriveNumber.Name = "textBoxMediaDriveNumber";
+            this.textBoxMediaDriveNumber.Size = new System.Drawing.Size(142, 20);
+            this.textBoxMediaDriveNumber.TabIndex = 4;
+            this.textBoxMediaDriveNumber.Text = "MediaDrive Number";
             // 
             // GUI
             // 
             this.ClientSize = new System.Drawing.Size(304, 67);
-            this.Controls.Add(this.textBoxMediaDrive);
+            this.Controls.Add(this.textBoxMediaDriveNumber);
             this.Controls.Add(this.buttonWipeDb);
             this.Controls.Add(this.UseDBCheckBox);
             this.Controls.Add(this.buttonSelectAndRunInventory);
@@ -92,7 +92,7 @@
         private System.Windows.Forms.Button buttonSelectAndRunInventory;
         private System.Windows.Forms.CheckBox UseDBCheckBox;
         private System.Windows.Forms.Button buttonWipeDb;
-        private System.Windows.Forms.TextBox textBoxMediaDrive;
+        private System.Windows.Forms.TextBox textBoxMediaDriveNumber;
     }
 }
 
