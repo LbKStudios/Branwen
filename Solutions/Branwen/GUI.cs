@@ -24,31 +24,32 @@ namespace Branwen
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void buttonSelectAndRunInventory_Click(object sender, EventArgs e)
+        private void SelectAndRunInventoryButton_Click(object sender, EventArgs e)
         {
             fileCount = 0;
             try
             {
                 //make this thing and all associated stuff go away
-                buttonSelectAndRunInventory.Enabled = false;
-                buttonSelectAndRunInventory.Text = "Working";
-                buttonWipeDb.Enabled = false;
-                textBoxMediaDriveNumber.Enabled = false;
+                SelectAndRunInventoryButton.Enabled = false;
+				SelectAndRunInventoryButton.Text = "Working";
+                WipeDbButton.Enabled = false;
+				MediaDriveNumberTextBox.Enabled = false;
                 UseDBCheckBox.Enabled = false;
                 FolderBrowserDialog folderDialog = new FolderBrowserDialog();
                 folderDialog.Description = "Set Folder to Inventory";
                 if (folderDialog.ShowDialog() != DialogResult.OK)
                 {
-                    buttonSelectAndRunInventory.Enabled = true;
-                    buttonSelectAndRunInventory.Text = "Select Inventory Directory";
-                    buttonWipeDb.Enabled = true;
-                    textBoxMediaDriveNumber.Enabled = true;
+					SelectAndRunInventoryButton.Enabled = true;
+					SelectAndRunInventoryButton.Text = "Select Inventory Directory";
+                    WipeDbButton.Enabled = true;
+                    MediaDriveNumberTextBox.Enabled = true;
                     UseDBCheckBox.Enabled = true;
                     return;
                 }
 
                 DirectoryInfo[] topLevelDirectories = new DirectoryInfo(folderDialog.SelectedPath).GetDirectories();
-                if (topLevelDirectories == null)
+				string outputFile = Path.Combine(folderDialog.SelectedPath, "MediadriveInventory.xlsx");
+                if (outputFile == null || topLevelDirectories == null)
                 {
                     MessageBox.Show("This Directory is Invalid. Please try again");
                     return;
@@ -64,7 +65,7 @@ namespace Branwen
                         mySqlConnection = new MySqlConnection("server=box654.bluehost.com;user=lbkstud1_smedia;password=#sucK_my_d1ck;database=lbkstud1_SaurutobiMedia;");
                         mySqlConnection.Open();
                         //Do the Delete
-                        string deleteStatement = "DELETE FROM SaurutobiMediaPaths WHERE MediaDrive = " + textBoxMediaDriveNumber.Text + "; DELETE FROM SaurutobiMediaFiles WHERE MediaDrive = " + textBoxMediaDriveNumber.Text + ";";
+						string deleteStatement = "DELETE FROM SaurutobiMediaPaths WHERE MediaDrive = " + MediaDriveNumberTextBox.Text + "; DELETE FROM SaurutobiMediaFiles WHERE MediaDrive = " + MediaDriveNumberTextBox.Text + ";";
                         MySqlCommand deleteCommand = new MySqlCommand(deleteStatement, mySqlConnection);
                         deleteCommand.ExecuteNonQuery();
                     }
@@ -76,8 +77,15 @@ namespace Branwen
                     
                     for (int i = 0; i < topLevelDirectories.Length; i++)
                     {
-                        WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i]), mySqlConnection, textBoxMediaDriveNumber.Text);
+						WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i]), mySqlConnection, MediaDriveNumberTextBox.Text);
                     }
+
+					if (ExportFileCheckBox.Checked)
+					{
+						ExportDatabaseToFile(mySqlConnection, outputFile);
+					}
+
+					mySqlConnection.Close();
 
                     #endregion
                 }
@@ -85,12 +93,6 @@ namespace Branwen
                 {
                     #region SpreadSheet
 
-                    string outputFile = Path.Combine(folderDialog.SelectedPath, "MediadriveInventory.xlsx");
-                    if (outputFile == null)
-                    {
-                        MessageBox.Show("This Directory is Invalid. Please try again");
-                        return;
-                    }
                     if (File.Exists(outputFile))
                     {
                         File.Delete(outputFile);
@@ -119,17 +121,16 @@ namespace Branwen
 
                     #endregion
                 }
-
                 MessageBox.Show("DONE! Files Inventoried:  " + fileCount);
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Failed to Inventory:" + Environment.NewLine + ex.Message);
             }
-            buttonSelectAndRunInventory.Enabled = true;
-            buttonSelectAndRunInventory.Text = "Select Inventory Directory";
-            buttonWipeDb.Enabled = true;
-            textBoxMediaDriveNumber.Enabled = true;
+			SelectAndRunInventoryButton.Enabled = true;
+			SelectAndRunInventoryButton.Text = "Select Inventory Directory";
+			WipeDbButton.Enabled = true;
+			MediaDriveNumberTextBox.Enabled = true;
             UseDBCheckBox.Enabled = true;
         }
 
@@ -224,6 +225,45 @@ namespace Branwen
             insertCommand.ExecuteNonQuery();
         }
 
+		private void ExportDatabaseToFile(MySqlConnection mySqlConnection, string outputFile)
+		{
+			string[] types = new string[5];
+			//populate with DBTypes
+
+			List<BranwenFileInfo> toReturn = new List<>();
+			//populate file filestuff, make sure to make some form of fileInfo
+
+			FileInfo test = new FileInfo("somefilename");
+
+
+			//grab data, assort into files list properly, then dump to WriteDirectoryToWorksheet
+			if (File.Exists(outputFile))
+			{
+				File.Delete(outputFile);
+			}
+
+			//Create worksheet
+			SpreadsheetDocument spreadsheetDocument = SpreadsheetDocument.Create(outputFile, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook);
+			WorkbookPart workbookpart = spreadsheetDocument.AddWorkbookPart();
+			workbookpart.Workbook = new Workbook();
+			Sheets sheets = spreadsheetDocument.WorkbookPart.Workbook.AppendChild(new Sheets());
+
+			//Loop through all Directories and make a new sheet and put that shit in there
+			for (int i = 0; i < types.Length; i++)
+			{
+				WorksheetPart worksheetPart = workbookpart.AddNewPart<WorksheetPart>();
+				worksheetPart.Worksheet = new Worksheet(new SheetData());
+				SheetData sheetData = worksheetPart.Worksheet.GetFirstChild<SheetData>();
+				Sheet sheet = new Sheet();
+				sheet.Id = spreadsheetDocument.WorkbookPart.GetIdOfPart(worksheetPart);
+				sheet.Name = types[i];
+				sheet.SheetId = (UInt32)Convert.ToInt32(i + 1);
+				sheets.Append(sheet);
+				WriteDirectoryToWorksheet(toReturn, sheetData);
+			}
+			spreadsheetDocument.Close();
+		}
+
         #endregion
 
         #region Worksheet Methods
@@ -300,12 +340,12 @@ namespace Branwen
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void buttonWipeDb_Click(object sender, EventArgs e)
+		private void WipeDbButton_Click(object sender, EventArgs e)
         {
-            buttonWipeDb.Enabled = false;
-            buttonSelectAndRunInventory.Enabled = false;
-            buttonSelectAndRunInventory.Text = "Working";
-            textBoxMediaDriveNumber.Enabled = false;
+            WipeDbButton.Enabled = false;
+            SelectAndRunInventoryButton.Enabled = false;
+            SelectAndRunInventoryButton.Text = "Working";
+            MediaDriveNumberTextBox.Enabled = false;
             UseDBCheckBox.Enabled = false;
 
             try
@@ -322,11 +362,32 @@ namespace Branwen
             {
                 MessageBox.Show("Failed to Wipe:" + Environment.NewLine + ex.Message);
             }
-            buttonWipeDb.Enabled = true;
-            buttonSelectAndRunInventory.Enabled = true;
-            buttonSelectAndRunInventory.Text = "Select Inventory Directory";
-            textBoxMediaDriveNumber.Enabled = true;
+            WipeDbButton.Enabled = true;
+            SelectAndRunInventoryButton.Enabled = true;
+            SelectAndRunInventoryButton.Text = "Select Inventory Directory";
+            MediaDriveNumberTextBox.Enabled = true;
             UseDBCheckBox.Enabled = true;
         }
+
+		/// <summary>
+		/// Switched DB-related controls Enabled property based on if it's checked
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void UseDBCheckBox_CheckedChanged(object sender, EventArgs e)
+		{
+			if(this.UseDBCheckBox.Checked)
+			{
+				WipeDbButton.Enabled = true;
+				MediaDriveNumberTextBox.Enabled = true;
+				ExportFileCheckBox.Enabled = true;
+			}
+			else
+			{
+				WipeDbButton.Enabled = false;
+				MediaDriveNumberTextBox.Enabled = false;
+				ExportFileCheckBox.Enabled = false;
+			}
+		}
     }
 }

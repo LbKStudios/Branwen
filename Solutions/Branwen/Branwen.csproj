@@ -87,6 +87,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BranwenFileInfo.cs" />
     <Compile Include="GUI.cs">
       <SubType>Form</SubType>
     </Compile>
