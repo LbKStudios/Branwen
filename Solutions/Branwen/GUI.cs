@@ -34,15 +34,15 @@ namespace Branwen
 				WipeDbButton.Enabled = false;
 				MediaDriveNumberTextBox.Enabled = false;
 				UseDBCheckBox.Enabled = false;
+				ExportFileCheckBox.Enabled = false;
 				FolderBrowserDialog folderDialog = new FolderBrowserDialog();
 				folderDialog.Description = "Set Folder to Inventory";
 				if (folderDialog.ShowDialog() != DialogResult.OK)
 				{
 					SelectAndRunInventoryButton.Enabled = true;
 					SelectAndRunInventoryButton.Text = "Select Inventory Directory";
-					WipeDbButton.Enabled = true;
-					MediaDriveNumberTextBox.Enabled = true;
 					UseDBCheckBox.Enabled = true;
+					SetEnabledControls();
 					return;
 				}
 
@@ -128,9 +128,8 @@ namespace Branwen
 			}
 			SelectAndRunInventoryButton.Enabled = true;
 			SelectAndRunInventoryButton.Text = "Select Inventory Directory";
-			WipeDbButton.Enabled = true;
-			MediaDriveNumberTextBox.Enabled = true;
 			UseDBCheckBox.Enabled = true;
+			SetEnabledControls();
 		}
 
 		/// <summary>
@@ -379,11 +378,19 @@ namespace Branwen
 		}
 
 		/// <summary>
-		/// Switched DB-related controls Enabled property based on if it's checked
+		/// Switches DB-related controls Enabled property based on if it's checked
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		private void UseDBCheckBox_CheckedChanged(object sender, EventArgs e)
+		{
+			SetEnabledControls();
+		}
+
+		/// <summary>
+		/// Enables or Disables controls
+		/// </summary>
+		private void SetEnabledControls()
 		{
 			if (this.UseDBCheckBox.Checked)
 			{
