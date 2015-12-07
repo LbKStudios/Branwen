@@ -6,7 +6,30 @@ using System.Threading.Tasks;
 
 namespace Branwen
 {
-	class BranwenFileInfo
+	public class BranwenFileInfo
 	{
+		public string Name
+		{
+			get;
+			set;
+		}
+
+		public string Extension
+		{
+			get;
+			set;
+		}
+
+		public long FileSize
+		{
+			get;
+			set;
+		}
+
+		public List<string> Path
+		{
+			get;
+			set;
+		}
 	}
 }

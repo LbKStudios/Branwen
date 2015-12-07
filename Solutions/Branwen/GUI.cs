@@ -12,7 +12,6 @@ namespace Branwen
     public partial class GUI : Form
     {
         private int fileCount;
-        
 		
         public GUI()
         {
@@ -139,15 +138,23 @@ namespace Branwen
         /// </summary>
         /// <param name="parent"></param>
         /// <returns></returns>
-        private static IEnumerable<FileInfo> RunInventory(DirectoryInfo parent)
+		private static IEnumerable<BranwenFileInfo> RunInventory(DirectoryInfo parent)
         {
-            List<FileInfo> toReturn = new List<FileInfo>();
+			List<BranwenFileInfo> toReturn = new List<BranwenFileInfo>();
             foreach (DirectoryInfo directory in parent.GetDirectories())
             {
                 toReturn.AddRange(RunInventory(directory));
             }
-            toReturn.AddRange(parent.GetFiles());
-            return toReturn;
+			foreach(FileInfo file in parent.GetFiles())
+			{
+				BranwenFileInfo newFile = new BranwenFileInfo();
+				newFile.Name = Path.GetFileNameWithoutExtension(file.Name);
+				newFile.Extension = Path.GetExtension(file.Name);
+				newFile.FileSize = file.Length;
+				newFile.Path = file.DirectoryName.Split('\\').ToList();
+				toReturn.Add(newFile);
+			}
+			return toReturn;
         }
 
         #region Database Methods
@@ -156,13 +163,13 @@ namespace Branwen
         /// Writes all files in the Directory to the Databbase
         /// </summary>
         /// <param name="files"></param>
-        private void WriteDirectoryToDatabase(IEnumerable<FileInfo> files, MySqlConnection mySqlConnection, string mediaDrive)
+		private void WriteDirectoryToDatabase(IEnumerable<BranwenFileInfo> files, MySqlConnection mySqlConnection, string mediaDrive)
         {
             string insertFilesStatement = "INSERT INTO SaurutobiMediaFiles (FileName, Extension, Size, MediaType, MediaDrive) VALUES ";
             string insertPathsStatement = "INSERT INTO SaurutobiMediaPaths (FileName, PartOfPath, Path, MediaDrive) VALUES ";
 
             bool firstFileVal = true;
-            foreach (FileInfo file in files)
+			foreach (BranwenFileInfo file in files)
             {
                 if (!firstFileVal)
                 {
@@ -175,23 +182,22 @@ namespace Branwen
                 }
 
                 //File Name
-                insertFilesStatement += "('" + (Path.GetFileNameWithoutExtension(file.Name)).Replace("'", "''") + "', ";
+                insertFilesStatement += "('" + file.Name.Replace("'", "''") + "', ";
 
                 //File Extension
-                insertFilesStatement += "'" + Path.GetExtension(file.Name) + "', ";
+                insertFilesStatement += "'" + file.Name + "', ";
 
                 //File Size
-                insertFilesStatement += (file.Length / 1048576) + ", ";
+                insertFilesStatement += (file.FileSize / 1048576) + ", ";
 
-                List<string> path = file.DirectoryName.Split('\\').ToList();
                 //Media Type
-                insertFilesStatement += "'" + (path[2]).Replace("'", "''") + "', ";
+                insertFilesStatement += "'" + file.Path[2].Replace("'", "''") + "', ";
 
                 //MediaDrive
                 insertFilesStatement += mediaDrive + ")";
 
                 bool firstPathVal = true;
-                for (int i = 0; i < path.Count; i++)
+				for (int i = 0; i < file.Path.Count; i++)
                 {
                     if (!firstPathVal)
                     {
@@ -202,13 +208,13 @@ namespace Branwen
                         firstPathVal = false;
                     }
                     //File Name
-                    insertPathsStatement += "('" + (Path.GetFileNameWithoutExtension(file.Name)).Replace("'", "''") + "', ";
+                    insertPathsStatement += "('" + file.Name.Replace("'", "''") + "', ";
 
                     //PartOfPath
                     insertPathsStatement += i + ", ";
 
                     //Path
-                    insertPathsStatement += "'" + (path[i]).Replace("'", "''") + "', ";
+					insertPathsStatement += "'" + file.Path[i].Replace("'", "''") + "', ";
 
                     //MediaDrive
                     insertPathsStatement += mediaDrive + ")";
@@ -225,16 +231,20 @@ namespace Branwen
             insertCommand.ExecuteNonQuery();
         }
 
+		/// <summary>
+		/// Writes an Excel document with all the contentes of the database
+		/// </summary>
+		/// <param name="mySqlConnection"></param>
+		/// <param name="outputFile"></param>
 		private void ExportDatabaseToFile(MySqlConnection mySqlConnection, string outputFile)
 		{
 			string[] types = new string[5];
 			//populate with DBTypes
 
-			List<BranwenFileInfo> toReturn = new List<>();
+			List<BranwenFileInfo> toReturn = new List<BranwenFileInfo>();
 			//populate file filestuff, make sure to make some form of fileInfo
 
 			FileInfo test = new FileInfo("somefilename");
-
 
 			//grab data, assort into files list properly, then dump to WriteDirectoryToWorksheet
 			if (File.Exists(outputFile))
@@ -273,36 +283,35 @@ namespace Branwen
         /// </summary>
         /// <param name="files"></param>
         /// <param name="sheetData"></param>
-        private void WriteDirectoryToWorksheet(IEnumerable<FileInfo> files, SheetData sheetData)
+        private void WriteDirectoryToWorksheet(IEnumerable<BranwenFileInfo> files, SheetData sheetData)
         {
             //Write Worksheet Header
             WriteWorksheetHeader(sheetData);
 
-            foreach(FileInfo file in files)
+			foreach (BranwenFileInfo file in files)
             {
                 Row row = new Row();
                 Cell cell = new Cell();
                 
                 //File Name
-                cell.CellValue = new CellValue(Path.GetFileNameWithoutExtension(file.Name));
+                cell.CellValue = new CellValue(file.Name);
                 cell.DataType = CellValues.String;
                 row.Append(cell);
 
                 //File Extension
                 cell = new Cell();
-                cell.CellValue = new CellValue(Path.GetExtension(file.Name));
+                cell.CellValue = new CellValue(file.Extension);
                 cell.DataType = CellValues.String;
                 row.Append(cell);
 
                 //File Size
                 cell = new Cell();
-                cell.CellValue = new CellValue((file.Length / 1048576).ToString());
+				cell.CellValue = new CellValue((file.FileSize / 1048576).ToString());
                 cell.DataType = CellValues.Number;
                 row.Append(cell);
 
                 //write all the pathNames to the spreadsheet
-                List<string> path = file.DirectoryName.Split('\\').ToList();
-                foreach (string pathName in path)
+                foreach (string pathName in file.Path)
                 {
                     cell = new Cell();
                     cell.CellValue = new CellValue(pathName);
