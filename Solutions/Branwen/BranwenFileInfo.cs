@@ -26,6 +26,12 @@ namespace Branwen
 			set;
 		}
 
+		public string MediaDrive
+		{
+			get;
+			set;
+		}
+
 		public List<string> Path
 		{
 			get;
