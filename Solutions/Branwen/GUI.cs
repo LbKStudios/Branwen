@@ -220,7 +220,7 @@ namespace Branwen
 				insertFilesStatement += file.FileSize + ", ";
 
 				//Media Type
-				insertFilesStatement += "'" + file.Path[2].Replace("'", "''") + "', ";
+				insertFilesStatement += "'" + file.Path[1].Replace("'", "''") + "', ";
 
 				//MediaDrive
 				insertFilesStatement += file.MediaDrive + ")";
