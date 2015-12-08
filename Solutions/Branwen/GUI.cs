@@ -34,6 +34,7 @@ namespace Branwen
 				SelectAndRunInventoryButton.Enabled = false;
 				SelectAndRunInventoryButton.Text = "Working";
 				WipeDbButton.Enabled = false;
+				WipeDbButton.Text = "...";
 				MediaDriveNumberTextBox.Enabled = false;
 				UseDBCheckBox.Enabled = false;
 				ExportFileCheckBox.Enabled = false;
@@ -145,11 +146,13 @@ namespace Branwen
 		/// <param name="e"></param>
 		private void WipeDbButton_Click(object sender, EventArgs e)
 		{
-			WipeDbButton.Enabled = false;
 			SelectAndRunInventoryButton.Enabled = false;
 			SelectAndRunInventoryButton.Text = "Working";
+			WipeDbButton.Enabled = false;
+			WipeDbButton.Text = "...";
 			MediaDriveNumberTextBox.Enabled = false;
 			UseDBCheckBox.Enabled = false;
+			ExportFileCheckBox.Enabled = false;
 
 			try
 			{
@@ -165,11 +168,10 @@ namespace Branwen
 			{
 				MessageBox.Show("Failed to Wipe:" + Environment.NewLine + ex.Message);
 			}
-			WipeDbButton.Enabled = true;
 			SelectAndRunInventoryButton.Enabled = true;
 			SelectAndRunInventoryButton.Text = "Select Inventory Directory";
-			MediaDriveNumberTextBox.Enabled = true;
 			UseDBCheckBox.Enabled = true;
+			SetEnabledControls();
 		}
 
 		/// <summary>
@@ -448,12 +450,14 @@ namespace Branwen
 			if (this.UseDBCheckBox.Checked)
 			{
 				WipeDbButton.Enabled = true;
+				WipeDbButton.Text = "Wipe DB";
 				MediaDriveNumberTextBox.Enabled = true;
 				ExportFileCheckBox.Enabled = true;
 			}
 			else
 			{
 				WipeDbButton.Enabled = false;
+				WipeDbButton.Text = "Wipe DB";
 				MediaDriveNumberTextBox.Enabled = false;
 				ExportFileCheckBox.Enabled = false;
 			}
