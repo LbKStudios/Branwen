@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 
 namespace Branwen
@@ -57,41 +58,39 @@ namespace Branwen
 					return;
 				}
 
-				if (UseDBCheckBox.Checked == true)
+				if (UseDBCheckBox.Checked)
 				{
 					#region DataBase
 
-					MySqlConnection mySqlConnection;
-					try
+					using (MySqlConnection mySqlConnection = new MySqlConnection("server=box654.bluehost.com;user=lbkstud1_smedia;password=#sucK_my_d1ck;database=lbkstud1_SaurutobiMedia;"))
 					{
-						mySqlConnection = new MySqlConnection("server=box654.bluehost.com;user=lbkstud1_smedia;password=#sucK_my_d1ck;database=lbkstud1_SaurutobiMedia;");
-						mySqlConnection.Open();
-						//Do the Delete
-						string deleteStatement = "DELETE FROM SaurutobiMediaPaths WHERE MediaDrive = " + MediaDriveNumberTextBox.Text + "; DELETE FROM SaurutobiMediaFiles WHERE MediaDrive = " + MediaDriveNumberTextBox.Text + ";";
-						MySqlCommand deleteCommand = new MySqlCommand(deleteStatement, mySqlConnection);
-						deleteCommand.ExecuteNonQuery();
-					}
-					catch (Exception ex)
-					{
-						Console.Write(ex);
-						return;
-					}
+						try
+						{
+							mySqlConnection.Open();
+							//Do the Delete
+							string deleteStatement = "DELETE FROM SaurutobiMediaPaths WHERE MediaDrive = " + MediaDriveNumberTextBox.Text + "; DELETE FROM SaurutobiMediaFiles WHERE MediaDrive = " + MediaDriveNumberTextBox.Text + ";";
+							MySqlCommand deleteCommand = new MySqlCommand(deleteStatement, mySqlConnection);
+							deleteCommand.ExecuteNonQuery();
 
-					for (int i = 0; i < topLevelDirectories.Length; i++)
-					{
-						WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i], MediaDriveNumberTextBox.Text), mySqlConnection);
+							for (int i = 0; i < topLevelDirectories.Length; i++)
+							{
+								WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i], MediaDriveNumberTextBox.Text), mySqlConnection);
+							}
+
+							if (ExportFileCheckBox.Checked)
+							{
+								//Have to keep track of the fileCount before/after because the WorkSheet writing does the adding
+								int oldFileCount = fileCount;
+								ExportDatabaseToFile(mySqlConnection, outputFile);
+								fileCount = oldFileCount;
+							}
+						}
+						catch (Exception ex)
+						{
+							Console.Write(ex);
+							return;
+						}
 					}
-
-					if (ExportFileCheckBox.Checked)
-					{
-						//Have to keep track of the fileCount before/after because the WorkSheet writing does the adding
-						int oldFileCount = fileCount;
-						ExportDatabaseToFile(mySqlConnection, outputFile);
-						fileCount = oldFileCount;
-					}
-
-					mySqlConnection.Close();
-
 					#endregion
 				}
 				else
@@ -119,7 +118,7 @@ namespace Branwen
 						Sheet sheet = new Sheet();
 						sheet.Id = spreadsheetDocument.WorkbookPart.GetIdOfPart(worksheetPart);
 						sheet.Name = topLevelDirectories[i].Name;
-						sheet.SheetId = (UInt32)Convert.ToInt32(i + 1);
+						sheet.SheetId = (UInt32)(i + 1);
 						sheets.Append(sheet);
 						WriteDirectoryToWorksheet(RunInventory(topLevelDirectories[i], MediaDriveNumberTextBox.Text), sheetData);
 					}
@@ -194,16 +193,18 @@ namespace Branwen
 		/// <param name="files"></param>
 		private void WriteDirectoryToDatabase(IEnumerable<BranwenFileInfo> files, MySqlConnection mySqlConnection)
 		{
-			string insertFilesStatement = "INSERT INTO SaurutobiMediaFiles (FileName, Extension, Size, MediaType, MediaDrive) VALUES ";
-			string insertPathsStatement = "INSERT INTO SaurutobiMediaPaths (FileName, PartOfPath, Path, MediaDrive) VALUES ";
+			StringBuilder insertFilesStatement = new StringBuilder();
+			StringBuilder insertPathsStatement = new StringBuilder();
+			insertFilesStatement.Append("INSERT INTO SaurutobiMediaFiles (FileName, Extension, Size, MediaType, MediaDrive) VALUES ");
+			insertPathsStatement.Append("INSERT INTO SaurutobiMediaPaths (FileName, PartOfPath, Path, MediaDrive) VALUES ");
 
 			bool firstFileVal = true;
 			foreach (BranwenFileInfo file in files)
 			{
 				if (!firstFileVal)
 				{
-					insertFilesStatement += ", ";
-					insertPathsStatement += ", ";
+					insertFilesStatement.Append(", ");
+					insertPathsStatement.Append(", ");
 				}
 				else
 				{
@@ -211,52 +212,52 @@ namespace Branwen
 				}
 
 				//File Name
-				insertFilesStatement += "('" + file.Name.Replace("'", "''") + "', ";
+				insertFilesStatement.Append("('" + file.Name.Replace("'", "''") + "', ");
 
 				//File Extension
-				insertFilesStatement += "'" + file.Extension + "', ";
+				insertFilesStatement.Append("'" + file.Extension + "', ");
 
 				//File Size
-				insertFilesStatement += file.FileSize + ", ";
+				insertFilesStatement.Append(file.FileSize + ", ");
 
 				//Media Type
-				insertFilesStatement += "'" + file.Path[1].Replace("'", "''") + "', ";
+				insertFilesStatement.Append("'" + file.Path[1].Replace("'", "''") + "', ");
 
 				//MediaDrive
-				insertFilesStatement += file.MediaDrive + ")";
+				insertFilesStatement.Append(file.MediaDrive + ")");
 
 				bool firstPathVal = true;
 				for (int i = 0; i < file.Path.Count; i++)
 				{
 					if (!firstPathVal)
 					{
-						insertPathsStatement += ", ";
+						insertPathsStatement.Append(", ");
 					}
 					else
 					{
 						firstPathVal = false;
 					}
 					//File Name
-					insertPathsStatement += "('" + file.Name.Replace("'", "''") + "', ";
+					insertPathsStatement.Append("('" + file.Name.Replace("'", "''") + "', ");
 
 					//PartOfPath
-					insertPathsStatement += i + ", ";
+					insertPathsStatement.Append(i + ", ");
 
 					//Path
-					insertPathsStatement += "'" + file.Path[i].Replace("'", "''") + "', ";
+					insertPathsStatement.Append("'" + file.Path[i].Replace("'", "''") + "', ");
 
 					//MediaDrive
-					insertPathsStatement += file.MediaDrive + ")";
+					insertPathsStatement.Append(file.MediaDrive + ")");
 				}
 
 				fileCount++;
 			}
-			insertFilesStatement += ";";
-			insertPathsStatement += ";";
+			insertFilesStatement.Append(";");
+			insertPathsStatement.Append(";");
 
-			MySqlCommand insertCommand = new MySqlCommand(insertFilesStatement, mySqlConnection);
+			MySqlCommand insertCommand = new MySqlCommand(insertFilesStatement.ToString(), mySqlConnection);
 			insertCommand.ExecuteNonQuery();
-			insertCommand = new MySqlCommand(insertPathsStatement, mySqlConnection);
+			insertCommand = new MySqlCommand(insertPathsStatement.ToString(), mySqlConnection);
 			insertCommand.ExecuteNonQuery();
 		}
 
@@ -276,7 +277,6 @@ namespace Branwen
 				{
 					mediaTypes.Add(mediaTypeReader["MediaType"].ToString());
 				}
-				mediaTypeReader.Close();
 			}
 
 			//Make sure the outputFile doesn't exist
@@ -300,7 +300,7 @@ namespace Branwen
 				Sheet sheet = new Sheet();
 				sheet.Id = spreadsheetDocument.WorkbookPart.GetIdOfPart(worksheetPart);
 				sheet.Name = mediaTypes[i];
-				sheet.SheetId = (UInt32)Convert.ToInt32(i + 1);
+				sheet.SheetId = (UInt32)(i + 1);
 				sheets.Append(sheet);
 
 				List<BranwenFileInfo> files = new List<BranwenFileInfo>();
@@ -313,13 +313,18 @@ namespace Branwen
 						BranwenFileInfo newFile = new BranwenFileInfo();
 						newFile.Name = fileReader["FileName"].ToString();
 						newFile.Extension = fileReader["Extension"].ToString();
-						newFile.FileSize = long.Parse(fileReader["Size"].ToString());
+						long fileSize = 0;
+						if(!long.TryParse(fileReader["Size"].ToString(), out fileSize))
+						{
+							throw new Exception("file size couldn't parse on: " + newFile.Name);
+						}
+						newFile.FileSize = fileSize;
 						newFile.MediaDrive = fileReader["MediaDrive"].ToString();
 						newFile.Path = new List<string>();
 						files.Add(newFile);
 					}
-					fileReader.Close();
 				}
+
 				//Add the Paths
 				foreach (BranwenFileInfo file in files)
 				{
@@ -330,7 +335,6 @@ namespace Branwen
 						{
 							file.Path.Add(pathReader["Path"].ToString());
 						}
-						pathReader.Close();
 					}
 				}
 				WriteDirectoryToWorksheet(files, sheetData);

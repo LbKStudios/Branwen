@@ -1,41 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Branwen
 {
 	public class BranwenFileInfo
 	{
-		public string Name
-		{
-			get;
-			set;
-		}
+		public string Name;
 
-		public string Extension
-		{
-			get;
-			set;
-		}
+		public string Extension;
 
-		public long FileSize
-		{
-			get;
-			set;
-		}
+		public long FileSize;
 
-		public string MediaDrive
-		{
-			get;
-			set;
-		}
+		public string MediaDrive;
 
-		public List<string> Path
-		{
-			get;
-			set;
-		}
+		public List<string> Path;
 	}
 }
