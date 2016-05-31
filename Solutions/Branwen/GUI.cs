@@ -64,31 +64,23 @@ namespace Branwen
 
 					using (MySqlConnection mySqlConnection = new MySqlConnection("server=box654.bluehost.com;user=lbkstud1_smedia;password=#sucK_my_d1ck;database=lbkstud1_SaurutobiMedia;"))
 					{
-						try
+						mySqlConnection.Open();
+						//Do the Delete
+						string deleteStatement = "DELETE FROM SaurutobiMediaPaths WHERE MediaDrive = " + MediaDriveNumberTextBox.Text + "; DELETE FROM SaurutobiMediaFiles WHERE MediaDrive = " + MediaDriveNumberTextBox.Text + ";";
+						MySqlCommand deleteCommand = new MySqlCommand(deleteStatement, mySqlConnection);
+						deleteCommand.ExecuteNonQuery();
+
+						for (int i = 0; i < topLevelDirectories.Length; i++)
 						{
-							mySqlConnection.Open();
-							//Do the Delete
-							string deleteStatement = "DELETE FROM SaurutobiMediaPaths WHERE MediaDrive = " + MediaDriveNumberTextBox.Text + "; DELETE FROM SaurutobiMediaFiles WHERE MediaDrive = " + MediaDriveNumberTextBox.Text + ";";
-							MySqlCommand deleteCommand = new MySqlCommand(deleteStatement, mySqlConnection);
-							deleteCommand.ExecuteNonQuery();
-
-							for (int i = 0; i < topLevelDirectories.Length; i++)
-							{
-								WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i], MediaDriveNumberTextBox.Text), mySqlConnection);
-							}
-
-							if (ExportFileCheckBox.Checked)
-							{
-								//Have to keep track of the fileCount before/after because the WorkSheet writing does the adding
-								int oldFileCount = fileCount;
-								ExportDatabaseToFile(mySqlConnection, outputFile);
-								fileCount = oldFileCount;
-							}
+							WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i], MediaDriveNumberTextBox.Text), mySqlConnection);
 						}
-						catch (Exception ex)
+
+						if (ExportFileCheckBox.Checked)
 						{
-							Console.Write(ex);
-							return;
+							//Have to keep track of the fileCount before/after because the WorkSheet writing does the adding
+							int oldFileCount = fileCount;
+							ExportDatabaseToFile(mySqlConnection, outputFile);
+							fileCount = oldFileCount;
 						}
 					}
 					#endregion
@@ -254,6 +246,7 @@ namespace Branwen
 			}
 			insertFilesStatement.Append(";");
 			insertPathsStatement.Append(";");
+			Console.WriteLine(insertFilesStatement.ToString());
 
 			MySqlCommand insertCommand = new MySqlCommand(insertFilesStatement.ToString(), mySqlConnection);
 			insertCommand.ExecuteNonQuery();

@@ -1,4 +1,21 @@
-vDos.0.0
+v4.2
+	Updated with new MySql.Data and DocumentFormat DLLs
+	Removed an extra try-catch that swallowed an exception
+		-Saurutobi
+
+v4.1
+	Made Changes but not documented
+		-Saurutobi
+
+v4.0
+	Made Changes but not documented
+		-Saurutobi
+
+v3.0
+	Made Changes but not documented
+		-Saurutobi
+
+vDos.0.0(2.0.0)
 	Complete re-write of the XML section
 	Complete GUI re-design
 		-Saurutobi
