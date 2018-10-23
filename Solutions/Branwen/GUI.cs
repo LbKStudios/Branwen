@@ -7,12 +7,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Configuration;
 
 namespace Branwen
 {
 	public partial class GUI : Form
 	{
 		private int fileCount;
+		public MySqlConnection mySqlConnection;
 
 		public GUI()
 		{
@@ -34,9 +36,7 @@ namespace Branwen
 				//make this thing and all associated stuff go away
 				SelectAndRunInventoryButton.Enabled = false;
 				SelectAndRunInventoryButton.Text = "Working";
-				WipeDbButton.Enabled = false;
-				WipeDbButton.Text = "...";
-				MediaDriveNumberTextBox.Enabled = false;
+				DriveNameTextBox.Enabled = false;
 				UseDBCheckBox.Enabled = false;
 				ExportFileCheckBox.Enabled = false;
 				FolderBrowserDialog folderDialog = new FolderBrowserDialog();
@@ -44,14 +44,14 @@ namespace Branwen
 				if (folderDialog.ShowDialog() != DialogResult.OK)
 				{
 					SelectAndRunInventoryButton.Enabled = true;
-					SelectAndRunInventoryButton.Text = "Select Inventory Directory";
+					SelectAndRunInventoryButton.Text = "Select Directory to Inventory";
 					UseDBCheckBox.Enabled = true;
 					SetEnabledControls();
 					return;
 				}
 
 				DirectoryInfo[] topLevelDirectories = new DirectoryInfo(folderDialog.SelectedPath).GetDirectories();
-				string outputFile = Path.Combine(folderDialog.SelectedPath, "MediadriveInventory.xlsx");
+				string outputFile = Path.Combine(folderDialog.SelectedPath, "DriveInventory.xlsx");
 				if (outputFile == null || topLevelDirectories == null)
 				{
 					MessageBox.Show("This Directory is Invalid. Please try again");
@@ -62,17 +62,17 @@ namespace Branwen
 				{
 					#region DataBase
 
-					using (MySqlConnection mySqlConnection = new MySqlConnection("server=box654.bluehost.com;user=lbkstud1_smedia;password=#sucK_my_d1ck;database=lbkstud1_SaurutobiMedia;"))
+					using (mySqlConnection)
 					{
 						mySqlConnection.Open();
 						//Do the Delete
-						string deleteStatement = "DELETE FROM SaurutobiMediaPaths WHERE MediaDrive = " + MediaDriveNumberTextBox.Text + "; DELETE FROM SaurutobiMediaFiles WHERE MediaDrive = " + MediaDriveNumberTextBox.Text + ";";
+						string deleteStatement = "DELETE FROM FilePaths WHERE Drive = " + DriveNameTextBox.Text + "; DELETE FROM Files WHERE Drive = " + DriveNameTextBox.Text + ";";
 						MySqlCommand deleteCommand = new MySqlCommand(deleteStatement, mySqlConnection);
 						deleteCommand.ExecuteNonQuery();
 
 						for (int i = 0; i < topLevelDirectories.Length; i++)
 						{
-							WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i], MediaDriveNumberTextBox.Text), mySqlConnection);
+							WriteDirectoryToDatabase(RunInventory(topLevelDirectories[i], DriveNameTextBox.Text), mySqlConnection);
 						}
 
 						if (ExportFileCheckBox.Checked)
@@ -112,7 +112,7 @@ namespace Branwen
 						sheet.Name = topLevelDirectories[i].Name;
 						sheet.SheetId = (UInt32)(i + 1);
 						sheets.Append(sheet);
-						WriteDirectoryToWorksheet(RunInventory(topLevelDirectories[i], MediaDriveNumberTextBox.Text), sheetData);
+						WriteDirectoryToWorksheet(RunInventory(topLevelDirectories[i], DriveNameTextBox.Text), sheetData);
 					}
 					spreadsheetDocument.Close();
 
@@ -125,42 +125,7 @@ namespace Branwen
 				MessageBox.Show("Failed to Inventory:" + Environment.NewLine + ex.Message);
 			}
 			SelectAndRunInventoryButton.Enabled = true;
-			SelectAndRunInventoryButton.Text = "Select Inventory Directory";
-			UseDBCheckBox.Enabled = true;
-			SetEnabledControls();
-		}
-
-		/// <summary>
-		/// Truncates the Database to clear all items
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void WipeDbButton_Click(object sender, EventArgs e)
-		{
-			SelectAndRunInventoryButton.Enabled = false;
-			SelectAndRunInventoryButton.Text = "Working";
-			WipeDbButton.Enabled = false;
-			WipeDbButton.Text = "...";
-			MediaDriveNumberTextBox.Enabled = false;
-			UseDBCheckBox.Enabled = false;
-			ExportFileCheckBox.Enabled = false;
-
-			try
-			{
-				MySqlConnection mySqlConnection;
-				mySqlConnection = new MySqlConnection("server=box654.bluehost.com;user=lbkstud1_smedia;password=#sucK_my_d1ck;database=lbkstud1_SaurutobiMedia;");
-				mySqlConnection.Open();
-
-				string deleteStatement = "TRUNCATE TABLE SaurutobiMediaPaths; TRUNCATE TABLE SaurutobiMediaFiles;";
-				MySqlCommand deleteCommand = new MySqlCommand(deleteStatement, mySqlConnection);
-				deleteCommand.ExecuteNonQuery();
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show("Failed to Wipe:" + Environment.NewLine + ex.Message);
-			}
-			SelectAndRunInventoryButton.Enabled = true;
-			SelectAndRunInventoryButton.Text = "Select Inventory Directory";
+			SelectAndRunInventoryButton.Text = "Select Directory to Inventory";
 			UseDBCheckBox.Enabled = true;
 			SetEnabledControls();
 		}
@@ -187,8 +152,8 @@ namespace Branwen
 		{
 			StringBuilder insertFilesStatement = new StringBuilder();
 			StringBuilder insertPathsStatement = new StringBuilder();
-			insertFilesStatement.Append("INSERT INTO SaurutobiMediaFiles (FileName, Extension, Size, MediaType, MediaDrive) VALUES ");
-			insertPathsStatement.Append("INSERT INTO SaurutobiMediaPaths (FileName, PartOfPath, Path, MediaDrive) VALUES ");
+			insertFilesStatement.Append("INSERT INTO Files (ID, FileName, Extension, Size, DriveName) VALUES ");
+			insertPathsStatement.Append("INSERT INTO FilePaths (FileID, PartOfPath, Path) VALUES ");
 
 			bool firstFileVal = true;
 			foreach (BranwenFileInfo file in files)
@@ -203,20 +168,29 @@ namespace Branwen
 					firstFileVal = false;
 				}
 
+				//Start of individual value item
+				insertFilesStatement.Append("('");
+
+				//ID
+				insertFilesStatement.Append($"{file.ID}, ");
+				
 				//File Name
-				insertFilesStatement.Append("('" + file.Name.Replace("'", "''") + "', ");
+				insertFilesStatement.Append($"{file.Name.Replace("'", "''")}', ");
 
 				//File Extension
-				insertFilesStatement.Append("'" + file.Extension + "', ");
+				insertFilesStatement.Append($"'{file.Extension}', ");
 
 				//File Size
-				insertFilesStatement.Append(file.FileSize + ", ");
+				insertFilesStatement.Append($"{file.FileSize}, ");
 
 				//Media Type
-				insertFilesStatement.Append("'" + file.Path[1].Replace("'", "''") + "', ");
+				insertFilesStatement.Append($"'{file.MediaType.Replace("'", "''")}', ");
 
-				//MediaDrive
-				insertFilesStatement.Append(file.MediaDrive + ")");
+				//Drive Name
+				insertFilesStatement.Append(file.DriveName);
+
+				//Closing individual value item
+				insertFilesStatement.Append(")");
 
 				bool firstPathVal = true;
 				for (int i = 0; i < file.Path.Count; i++)
@@ -229,17 +203,21 @@ namespace Branwen
 					{
 						firstPathVal = false;
 					}
-					//File Name
-					insertPathsStatement.Append("('" + file.Name.Replace("'", "''") + "', ");
+
+					//Start of individual value item
+					insertPathsStatement.Append("('");
+
+					//FileID
+					insertPathsStatement.Append($"{file.ID}', ");
 
 					//PartOfPath
-					insertPathsStatement.Append(i + ", ");
+					insertPathsStatement.Append($"{i}, ");
 
 					//Path
-					insertPathsStatement.Append("'" + file.Path[i].Replace("'", "''") + "', ");
+					insertPathsStatement.Append($"'{file.Path[i].Replace("'", "''")}', ");
 
-					//MediaDrive
-					insertPathsStatement.Append(file.MediaDrive + ")");
+					//Closing individual value item
+					insertPathsStatement.Append(")");
 				}
 
 				fileCount++;
@@ -263,7 +241,7 @@ namespace Branwen
 		{
 			//Get all the MediaTypes
 			List<string> mediaTypes = new List<string>();
-			MySqlCommand command = new MySqlCommand("SELECT MediaType FROM SaurutobiMediaFiles GROUP BY MediaType;", mySqlConnection);
+			MySqlCommand command = new MySqlCommand("SELECT MediaType FROM Files GROUP BY MediaType;", mySqlConnection);
 			using (MySqlDataReader mediaTypeReader = command.ExecuteReader())
 			{
 				while (mediaTypeReader.Read())
@@ -298,12 +276,13 @@ namespace Branwen
 
 				List<BranwenFileInfo> files = new List<BranwenFileInfo>();
 
-				command = new MySqlCommand("SELECT FileName, Extension, Size, MediaDrive FROM SaurutobiMediaFiles WHERE MediaType = '" + mediaTypes[i] + "';", mySqlConnection);
+				command = new MySqlCommand($"SELECT FileName, Extension, Size, DriveName FROM Files WHERE MediaType = '{mediaTypes[i]}';", mySqlConnection);
 				using (MySqlDataReader fileReader = command.ExecuteReader())
 				{
 					while (fileReader.Read())
 					{
 						BranwenFileInfo newFile = new BranwenFileInfo();
+						newFile.ID = fileReader["ID"].ToString();
 						newFile.Name = fileReader["FileName"].ToString();
 						newFile.Extension = fileReader["Extension"].ToString();
 						long fileSize = 0;
@@ -312,8 +291,7 @@ namespace Branwen
 							throw new Exception("file size couldn't parse on: " + newFile.Name);
 						}
 						newFile.FileSize = fileSize;
-						newFile.MediaDrive = fileReader["MediaDrive"].ToString();
-						newFile.Path = new List<string>();
+						newFile.DriveName = fileReader["DriveName"].ToString();
 						files.Add(newFile);
 					}
 				}
@@ -321,9 +299,10 @@ namespace Branwen
 				//Add the Paths
 				foreach (BranwenFileInfo file in files)
 				{
-					MySqlCommand pathCommand = new MySqlCommand("SELECT Path FROM SaurutobiMediaPaths WHERE FileName = '" + file.Name.Replace("'", "''") + "' ORDER BY PartOfPath asc;", mySqlConnection);
+					MySqlCommand pathCommand = new MySqlCommand($"SELECT Path FROM Paths WHERE FileID = '{file.ID}' ORDER BY PartOfPath asc;", mySqlConnection);
 					using (MySqlDataReader pathReader = pathCommand.ExecuteReader())
 					{
+						file.Path = new List<string>();
 						while (pathReader.Read())
 						{
 							file.Path.Add(pathReader["Path"].ToString());
@@ -371,9 +350,9 @@ namespace Branwen
 				cell.DataType = CellValues.Number;
 				row.Append(cell);
 
-				//MediaDrive
+				//DriveName
 				cell = new Cell();
-				cell.CellValue = new CellValue(file.MediaDrive);
+				cell.CellValue = new CellValue(file.DriveName);
 				cell.DataType = CellValues.String;
 				row.Append(cell);
 
@@ -398,7 +377,7 @@ namespace Branwen
 		private static void WriteWorksheetHeader(SheetData sheetData)
 		{
 			Row row = new Row();
-			List<string> headers = new List<string> { "File Name", "File-Type", "Size(In MB)", "MediaDrive", "Folder1", "Folder2", "Folder3", "Folder4", "Folder5", "Folder6", "Folder7" };
+			List<string> headers = new List<string> { "File Name", "File-Type", "Size(In MB)", "DriveName", "Folder1", "Folder2", "Folder3", "Folder4", "Folder5", "Folder6", "Folder7" };
 			foreach (string header in headers)
 			{
 				Cell someCell = new Cell();
@@ -418,21 +397,23 @@ namespace Branwen
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <returns></returns>
-		private static IEnumerable<BranwenFileInfo> RunInventory(DirectoryInfo parent, string mediaDrive)
+		private static IEnumerable<BranwenFileInfo> RunInventory(DirectoryInfo parent, string driveName)
 		{
 			List<BranwenFileInfo> files = new List<BranwenFileInfo>();
 			foreach (DirectoryInfo directory in parent.GetDirectories())
 			{
-				files.AddRange(RunInventory(directory, mediaDrive));
+				files.AddRange(RunInventory(directory, driveName));
 			}
 			foreach (FileInfo file in parent.GetFiles())
 			{
 				BranwenFileInfo newFile = new BranwenFileInfo();
+				newFile.ID = Guid.NewGuid().ToString();
 				newFile.Name = Path.GetFileNameWithoutExtension(file.Name);
 				newFile.Extension = Path.GetExtension(file.Name);
 				newFile.FileSize = file.Length;
-				newFile.MediaDrive = mediaDrive;
+				newFile.DriveName = driveName;
 				newFile.Path = file.DirectoryName.Split('\\').ToList();
+				newFile.MediaType = newFile.Path[1];
 				newFile.Path.RemoveAt(0);
 				files.Add(newFile);
 			}
@@ -444,18 +425,16 @@ namespace Branwen
 		/// </summary>
 		private void SetEnabledControls()
 		{
-			if (this.UseDBCheckBox.Checked)
+			if (UseDBCheckBox.Checked)
 			{
-				WipeDbButton.Enabled = true;
-				WipeDbButton.Text = "Wipe DB";
-				MediaDriveNumberTextBox.Enabled = true;
-				ExportFileCheckBox.Enabled = true;
+				DBConfig dBConfig = new DBConfig(this);
+				dBConfig.Show();
+				UseDBCheckBox.Enabled = false;
+				SelectAndRunInventoryButton.Enabled = false;
 			}
 			else
 			{
-				WipeDbButton.Enabled = false;
-				WipeDbButton.Text = "Wipe DB";
-				MediaDriveNumberTextBox.Enabled = false;
+				DriveNameTextBox.Enabled = false;
 				ExportFileCheckBox.Enabled = false;
 			}
 		}
