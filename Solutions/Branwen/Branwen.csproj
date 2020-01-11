@@ -88,24 +88,18 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BranwenFileInfo.cs" />
-    <Compile Include="DBConfig.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="DBConfig.Designer.cs">
-      <DependentUpon>DBConfig.cs</DependentUpon>
-    </Compile>
+    <Compile Include="Model\BranwenFileInfo.cs" />
+    <Compile Include="File Output Handlers\json Handler.cs" />
+    <Compile Include="File Output Handlers\Spreadsheet Handler.cs" />
     <Compile Include="GUI.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="GUI.designer.cs">
       <DependentUpon>GUI.cs</DependentUpon>
     </Compile>
+    <Compile Include="Model\SingleLocalDriveInventory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="DBConfig.resx">
-      <DependentUpon>DBConfig.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="GUI.resx">
       <DependentUpon>GUI.cs</DependentUpon>
     </EmbeddedResource>

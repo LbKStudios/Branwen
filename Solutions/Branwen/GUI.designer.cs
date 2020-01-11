@@ -53,7 +53,6 @@
 			this.UseDBCheckBox.TabIndex = 2;
 			this.UseDBCheckBox.Text = "UseDB";
 			this.UseDBCheckBox.UseVisualStyleBackColor = true;
-			this.UseDBCheckBox.CheckedChanged += new System.EventHandler(this.UseDBCheckBox_CheckedChanged);
 			// 
 			// DriveNameTextBox
 			// 
