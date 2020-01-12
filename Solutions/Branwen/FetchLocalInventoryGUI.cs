@@ -24,6 +24,7 @@ namespace Branwen
 			folderDialog.Description = "Set Folder to Inventory";
 			if (folderDialog.ShowDialog() != DialogResult.OK)
 			{
+				folderDialog.Description = "Select Source Directory";
 				SelectedSourceLabel.Enabled = true;
 			}
 			else
@@ -40,6 +41,7 @@ namespace Branwen
 			folderDialog.Description = "Set Folder to Output Inventory File To";
 			if (folderDialog.ShowDialog() != DialogResult.OK)
 			{
+				folderDialog.Description = "Select Output Directory";
 				SelectedOutputLabel.Enabled = true;
 			}
 			else
@@ -68,14 +70,14 @@ namespace Branwen
 			try
 			{
 				JsonHandler.WriteLocalInventoryToFile(inventory, outputFile);
+				MessageBox.Show($"Inventory Complete. Output file is at {outputFile}. Filecount: {fileCount}");
+				Application.Exit();
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show("Failed to Inventory:" + Environment.NewLine + ex.Message);
 				Application.Exit();
 			}
-			MessageBox.Show($"Inventory Complete. Output file is at {outputFile}. Filecount: {fileCount}");
-			Application.Exit();
 		}
 
 		#region Helper Methods

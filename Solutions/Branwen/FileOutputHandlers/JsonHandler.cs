@@ -17,10 +17,10 @@ namespace Branwen.FileOutputHandlers
 			File.WriteAllText(outputFile, JsonConvert.SerializeObject(inventory));
 		}
 
-		public static IEnumerable<SingleInventory> ImportAllLocalInventoriesFromFiles(string path)
+		public static IEnumerable<SingleInventory> ImportAllLocalInventoriesFromFiles(string inputFolder)
 		{
 			List<SingleInventory> inventories = new List<SingleInventory>();
-			foreach (FileInfo file in new DirectoryInfo(path).GetFiles())
+			foreach (FileInfo file in new DirectoryInfo(inputFolder).GetFiles())
 			{
 				if(file.Name.Contains($"_{FetchLocalInventoryGUI.GenericFileNameEnding}"))
 				{
