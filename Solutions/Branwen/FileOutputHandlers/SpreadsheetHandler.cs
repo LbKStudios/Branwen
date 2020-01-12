@@ -48,7 +48,7 @@ namespace Branwen.FileOutputHandlers
 		/// </summary>
 		/// <param name="files"></param>
 		/// <param name="sheetData"></param>
-		public static int WriteDirectoryToWorksheet(IEnumerable<BranwenFileInfo> files, SheetData sheetData)
+		public static int WriteDirectoryToWorksheet(List<BranwenFileInfo> files, SheetData sheetData)
 		{
 			int fileCount = 0;
 			//Write Worksheet Header

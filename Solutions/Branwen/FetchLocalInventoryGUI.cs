@@ -61,7 +61,7 @@ namespace Branwen
 			//Loop through all directories and build local inventory
 			for (int i = 0; i < topLevelDirectories.Length; i++)
 			{
-				IEnumerable<BranwenFileInfo> files = RunInventory(topLevelDirectories[i], DriveNameTextBox.Text);
+				List<BranwenFileInfo> files = RunInventory(topLevelDirectories[i], DriveNameTextBox.Text);
 				fileCount += files.Count();
 				inventory.TopLevelDirectoriesAndFiles.Add(topLevelDirectories[i].Name, files);
 			}
@@ -87,7 +87,7 @@ namespace Branwen
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <returns></returns>
-		private static IEnumerable<BranwenFileInfo> RunInventory(DirectoryInfo parent, string driveName)
+		private static List<BranwenFileInfo> RunInventory(DirectoryInfo parent, string driveName)
 		{
 			List<BranwenFileInfo> files = new List<BranwenFileInfo>();
 			foreach (DirectoryInfo directory in parent.GetDirectories())

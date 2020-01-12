@@ -17,7 +17,7 @@ namespace Branwen.FileOutputHandlers
 			File.WriteAllText(outputFile, JsonConvert.SerializeObject(inventory));
 		}
 
-		public static IEnumerable<SingleInventory> ImportAllLocalInventoriesFromFiles(string inputFolder)
+		public static List<SingleInventory> ImportAllLocalInventoriesFromFiles(string inputFolder)
 		{
 			List<SingleInventory> inventories = new List<SingleInventory>();
 			foreach (FileInfo file in new DirectoryInfo(inputFolder).GetFiles())

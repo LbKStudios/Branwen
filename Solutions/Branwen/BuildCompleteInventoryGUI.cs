@@ -52,7 +52,7 @@ namespace Branwen
 		{
 			GoButton.Enabled = false;
 			GoButton.Text = "Working";
-			IEnumerable<SingleInventory> inventories = JsonHandler.ImportAllLocalInventoriesFromFiles(SelectedSourceLabel.Text);
+			List<SingleInventory> inventories = JsonHandler.ImportAllLocalInventoriesFromFiles(SelectedSourceLabel.Text);
 			SingleInventory allFiles = convertMultipleSingleInventoryObjectsToOne(inventories);
 			GoButton.Text = $"Imported all individual inventories. Writing complete inventory to Output";
 			string outputFile = Path.Combine(SelectedOutputLabel.Text, "CompleteInventory.xlsx");
@@ -71,10 +71,29 @@ namespace Branwen
 
 		#region Helper Methods
 
-		private static SingleInventory convertMultipleSingleInventoryObjectsToOne(IEnumerable<SingleInventory> inventories)
+		private static SingleInventory convertMultipleSingleInventoryObjectsToOne(List<SingleInventory> inventories)
 		{
-			//convert list<SingleInventory> to <SingleInventory> by opening TopLevelDirectoriesAndFiles, matching the keys, and adding files to those keys. then do a sort on the files by name for alphabetical
-			return new SingleInventory();
+			SingleInventory allFiles = new SingleInventory();
+			foreach (SingleInventory inventory in inventories)
+			{
+				foreach (var item in inventory.TopLevelDirectoriesAndFiles)
+				{
+					if (allFiles.TopLevelDirectoriesAndFiles.ContainsKey(item.Key))
+					{
+						allFiles.TopLevelDirectoriesAndFiles[item.Key].AddRange(item.Value);
+					}
+					else
+					{
+						inventory.TopLevelDirectoriesAndFiles.Add(item.Key, item.Value);
+					}
+				}
+			}
+			foreach (var items in allFiles.TopLevelDirectoriesAndFiles)
+			{
+				//MAY NEED A FOLDER-LEVEL SORT OF SOME FORM, THIS MAY FAIL BADLY
+				items.Value.Sort((a, b) => a.Name.CompareTo(b.Name));
+			}
+			return allFiles;
 		}
 
 		#endregion

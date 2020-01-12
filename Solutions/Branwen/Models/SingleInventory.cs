@@ -4,6 +4,6 @@ namespace Branwen.Models
 {
 	public class SingleInventory
 	{
-		public Dictionary<string, IEnumerable<BranwenFileInfo>> TopLevelDirectoriesAndFiles { get; set; }
+		public Dictionary<string, List<BranwenFileInfo>> TopLevelDirectoriesAndFiles { get; set; }
 	}
 }
