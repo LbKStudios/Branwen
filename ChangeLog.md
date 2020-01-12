@@ -1,8 +1,9 @@
 v5.0
 	UI Rewrite
-	Removed remote DB functionality
-	Added local json inventory output file
-	Added output file reading local json files
+	Removed DB functionality
+	Added local json inventory output file logic
+	Added output file reading local json files to write spreadsheet logic
+	Added a Help button and wiki
 
 v4.3
 	Added UI component for DB configuration
