@@ -1,6 +1,6 @@
 ﻿namespace Branwen
 {
-    partial class GUI
+    partial class OldGUI
     {
         /// <summary>
         /// Required designer variable.

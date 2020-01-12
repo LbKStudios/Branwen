@@ -1,6 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,11 +12,9 @@ using Branwen.FileOutputHandlers;
 
 namespace Branwen
 {
-	public partial class GUI : Form
+	public partial class OldGUI : Form
 	{
-		public MySqlConnection mySqlConnection;
-
-		public GUI()
+		public OldGUI()
 		{
 			InitializeComponent();
 		}
@@ -80,7 +77,7 @@ namespace Branwen
 					sheet.Name = topLevelDirectories[i].Name;
 					sheet.SheetId = (UInt32)(i + 1);
 					sheets.Append(sheet);
-					fileCount += SpreadsheetHandler.WriteDirectoryToWorksheet(RunInventory(topLevelDirectories[i], DriveNameTextBox.Text), sheetData);
+					//fileCount += SpreadsheetHandler.WriteDirectoryToWorksheet(RunInventory(topLevelDirectories[i], DriveNameTextBox.Text), sheetData);
 				}
 				spreadsheetDocument.Close();
 
@@ -104,16 +101,16 @@ namespace Branwen
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <returns></returns>
-		private static IEnumerable<BranwenFileInfo> RunInventory(DirectoryInfo parent, string driveName)
+		private static IEnumerable<OldBranwenFileInfo> RunInventory(DirectoryInfo parent, string driveName)
 		{
-			List<BranwenFileInfo> files = new List<BranwenFileInfo>();
+			List<OldBranwenFileInfo> files = new List<OldBranwenFileInfo>();
 			foreach (DirectoryInfo directory in parent.GetDirectories())
 			{
 				files.AddRange(RunInventory(directory, driveName));
 			}
 			foreach (FileInfo file in parent.GetFiles())
 			{
-				BranwenFileInfo newFile = new BranwenFileInfo();
+				OldBranwenFileInfo newFile = new OldBranwenFileInfo();
 				newFile.ID = Guid.NewGuid().ToString();
 				newFile.Name = Path.GetFileNameWithoutExtension(file.Name);
 				newFile.Extension = Path.GetExtension(file.Name);

@@ -4,12 +4,10 @@ namespace Branwen.Models
 {
 	public class BranwenFileInfo
 	{
-		public string ID;
 		public string Name;
-		public string Extension;
-		public long FileSize;
-		public string MediaType;
-		public string DriveName;
+		public string FileType;
+		public long Size;
 		public List<string> Path;
+		public string DriveName;
 	}
 }
